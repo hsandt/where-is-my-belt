@@ -1,0 +1,117 @@
+# Do not trigger Travis if commit message contains "(WIP)" or "#no_travis" (case-insensitive)
+if: commit_message !~ /(\(WIP\)|#no_travis)/
+
+os: linux
+
+language: python # Can use any language here, but if it's not 'python'
+                 # it becomes necessary to pass '--user' to pip when installing hererocks.
+python: "3.6"
+
+env:
+  - LUA_VERSION=5.3 BUILD_TITLE=`cat data/title_cartridge.txt` BUILD_VERSION=`cat data/version.txt` CARTRIDGES=`cat data/cartridges.txt` ENABLE_RENDER=1
+
+cache:
+  directories:
+    # remember to "travis cache --delete" in travis CL each time a custom cached directory needs upgrade (unlike cached packages)
+    - hererocks     # for hererocks (make a parent folder, then install lua inside, to make sure the folder will be used as cache)
+                    # just a small optimization to cache the whole lua install, since the hererocks pip wheel is cached with .cache/pip anyway
+    - tool          # for picotool
+    - $HOME/.cache  # for .cache/luarocks and .cache/pip
+
+before_install:
+  # install hererocks if needed
+  - |
+    if [[ ! -d lua$LUA_VERSION || ! -x lua$LUA_VERSION/bin/activate ]]; then
+      pip install hererocks
+      pushd hererocks
+      hererocks lua$LUA_VERSION --lua $LUA_VERSION -rlatest
+      popd
+    fi
+
+  # activate Lua
+  - source hererocks/lua$LUA_VERSION/bin/activate
+
+install:
+  # install lua packages for testing
+  - luarocks install busted
+  - luarocks install luacov
+  - luarocks install cluacov
+
+  # delegate submodule install (for luamin from npm)
+  - pico-boots/setup.sh
+
+before_script:
+  # download picotool if needed
+  # tool directory is automatically created when added to cache,
+  # so it's important to check if the executable itself already exists
+  # also download main archive only if not already in cache
+  # while this means we may miss some latest version of p8tool,
+  # this is fine as it's quite stable for the features we use
+  # and we don't need the latest changes specifically
+  # if you need to clear cache, do it from Travis or just add some rm main.zip
+  - |
+    if [[ ! -d tool || ! -x tool/picotool-master/p8tool ]]; then
+      pushd tool
+      if [[ ! -f main.zip ]]; then
+        wget https://github.com/dansanderson/picotool/archive/refs/heads/main.zip
+      fi
+      unzip main.zip
+      popd
+    fi
+  # make a symlink to p8tool in the PATH
+  - mkdir -p "$HOME/.local/bin"
+  - ln -s "$(pwd)/tool/picotool-master/p8tool" "$HOME/.local/bin/p8tool"
+
+script:
+  # build game to make sure everything works fine
+  # (even if build fails, tests will be run independently thanks to busted)
+  # disabled build_game.sh debug because character count may get over 65536
+  # easily when working at the limit, and fail; while build release is what really counts
+  # (although it's bad sign for us if we cannot debug the game)
+  # - ./build_all_cartridges.sh debug
+  - ./build_all_cartridges.sh release
+
+  # disabled build_itest.sh in Travis for the same reason as debug
+  # - ./build_itest.sh
+  # in the tests below, we don't pass `-m all` anymore because
+  #  we *do* want to ignore WIP tests flagged #mute
+  # test: all utests
+  - ITEST_CARTRIDGE_SUFFIX=ignore ./test.sh
+  # test: all headless itests for each cartridge (ENABLE_RENDER set in env)
+  - |
+    for cartridge in $CARTRIDGES; do
+      ITEST_CARTRIDGE_SUFFIX="$cartridge" ./test.sh -f headless_itests
+      if [[ $? -ne 0 ]]; then
+        echo ""
+        echo "Headless itests failed for cartridge "$cartridge", STOP."
+        exit 1
+      fi
+    done
+  # Lua coverage with codecov, checking file integrity
+  - curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --no-default-keyring --keyring trustedkeys.gpg --import # One-time step
+  - curl -Os https://uploader.codecov.io/latest/linux/codecov
+  - curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM
+  - curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM.sig
+  - gpgv codecov.SHA256SUM.sig codecov.SHA256SUM
+  - shasum -a 256 -c codecov.SHA256SUM
+  - chmod +x codecov
+  - ./codecov
+
+before_deploy:
+  # zip multiple cartridges (including data) into one distributable archive
+  - cp data/data_*.p8 "build/v${BUILD_VERSION}_release"
+  - pushd build
+  # we are going to zip the whole folder, folder itself included, to make it easier
+  # for user to extract in a proper folder; so rename the folder to make it meaningful
+  - mv "v${BUILD_VERSION}_release" "${BUILD_TITLE}_v${BUILD_VERSION}_release_cartridges"
+  - zip -r "${BUILD_TITLE}_v${BUILD_VERSION}_release_cartridges.zip" "${BUILD_TITLE}_v${BUILD_VERSION}_release_cartridges"
+  - popd
+
+deploy:
+  provider: releases
+  api_key:
+    secure: bfXQQ0AXGHgXiq0xOxhYQ2AXX/flQnxJh/+eA/HUGfwdoPDq0QTdqFA/3jEMWkJSsFKEBVKDjJGCt24QPxUIjTu91r1wyCNdL2KlNfnogRjWAVutRZxB/OC2HWR3kJtPjkFQBCsOXHBxGI3hMJL7LWr5WfNsSGMbcRMfvphxFT3ER8XBHAUEJY6roITm6noHroqQt8Uye+0+rkGqJ8QslKRqq8qBZMZeOiOrh6SBdlhsGw0KqNno/dMXQxx2ZCrh/VUeWjNvxzXe/mZjfBPbhvyecN7jz+FytEdAhdt1Dy37hhyOAkDfxLGGsH1YAAfinH8uFwoSRo0MH8fuhdXpT7jUXuAgP9/RS0FEiZDdX+J/FdncCbnoDfE9B4Dt3L3srISeiNwxKK5sx2kzyWvftK30pV1+zEgnbVEKGPIIeGb5wYWSCmzHf+CfLMk+bzeznTrpo/irY/vjoRBefNaVWXqLygrNWxM1uIMJae+OA3MYeUSYd1lpCyRw98i3GC7si68M9OaDeLoDjnqOLqvhurB/RmLzCU7mCYipn2kxykAOdevWN73cyx9VhdFy2GPE5VDw6EO6ZQP04KaeYxP2pgR4ts2kYWpVvf1PGg+2yN4QMkVhrWV+6dG2jtUO0BrCqt5Tpw0I3C3aFmBjjzFBBuKsZpr2yUG3roxnu1Dhww0=
+  file: build/${BUILD_TITLE}_v${BUILD_VERSION}_release_cartridges.zip
+  on:
+    tags: 'true'
+  skip_cleanup: 'true'

@@ -1,0 +1,677 @@
+{
+	"build_systems":
+	[
+		{
+			"name": "Dev: analyze engine scripts (intermediate release)",
+			"shell": true,
+			"working_dir": "${project_path}",
+			"cmd": ["python3 -m pico-boots.scripts.analyze intermediate/release/pico-boots"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Dev: analyze game scripts (intermediate release)",
+			"shell": true,
+			"working_dir": "${project_path}",
+			"cmd": ["python3 -m pico-boots.scripts.analyze intermediate/release/src"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Dev: generate dependency graph",
+			"shell": true,
+			"working_dir": "${project_path}",
+			"cmd": ["python3 -m pico-boots.scripts.generate_dependency_graph log/dependency_graph.dot src pico-boots/src"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Dev: generate ordered require file for unity build (for testing)",
+			"shell": true,
+			"working_dir": "${project_path}",
+			"cmd": ["python3 -m pico-boots.scripts.generate_ordered_require_file log/ordered_require.lua core src pico-boots/src"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Engine: setup",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["./setup.sh"],
+			"syntax": "Packages/Python/Python.sublime-syntax",
+		},
+		{
+			"name": "Game: edit built-in data: core",
+			"shell": true,
+			"cmd": ["pico8 -run data/builtin_data_core.p8"],
+			"working_dir": "${project_path}"
+		},
+		{
+			"name": "Game: edit metadata",
+			"shell": true,
+			"cmd": ["./edit_metadata.sh"],
+			"working_dir": "${project_path}"
+		},
+		{
+			"name": "Game: build cartridge core",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./build_and_install_single_cartridge_with_data.sh core debug"],
+			"file_regex": "(.*\\.sh)(?:\\: line )([\\d]+)(?:\\:)([\\d]+)? (.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax",
+			"variants":
+			[
+				{
+					"name": "debug",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core debug"]
+				},
+				{
+					"name": "debug-ultrafast",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core debug-ultrafast"]
+				},
+				{
+					"name": "cheat",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core cheat"]
+				},
+				{
+					"name": "tuner",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core tuner"]
+				},
+				{
+					"name": "ultrafast",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core ultrafast"]
+				},
+				{
+					"name": "cheat-ultrafast",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core cheat-ultrafast"]
+				},
+				{
+					"name": "assert",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core assert"]
+				},
+				{
+					"name": "profiler",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core profiler"]
+				},
+				{
+					"name": "release",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core release"]
+				}
+			]
+		},
+		{
+			"name": "Game: build full game",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./build_and_install_all_cartridges.sh debug"],
+			"file_regex": "(.*\\.sh)(?:\\: line )([\\d]+)(?:\\:)([\\d]+)? (.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax",
+			"variants":
+			[
+				{
+					"name": "debug",
+					"cmd": ["./build_and_install_all_cartridges.sh debug"]
+				},
+				{
+					"name": "cheat",
+					"cmd": ["./build_and_install_all_cartridges.sh cheat"]
+				},
+				{
+					"name": "release",
+					"cmd": ["./build_and_install_all_cartridges.sh release"]
+				}
+			]
+		},
+		{
+			"name": "Game: build itests core",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./build_and_install_single_cartridge_with_data.sh core itest --itest"],
+			"file_regex": "(.*\\.sh)(?:\\: line )([\\d]+)(?:\\:)([\\d]+)? (.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax",
+		},
+		{
+			"name": "Game: build pico8 utests",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./build_pico8_utests.sh"],
+			"file_regex": "(.*\\.sh)(?:\\: line )([\\d]+)(?:\\:)([\\d]+)? (.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Game: build and run core",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./build_and_install_single_cartridge_with_data.sh core debug && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core debug)"],
+			"file_regex": "(.*\\.sh)(?:\\: line )([\\d]+)(?:\\:)([\\d]+)? (.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax",
+			"variants":
+			[
+				{
+					"name": "debug",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core debug && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core debug)"]
+				},
+				{
+					"name": "debug-ultrafast",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core debug-ultrafast && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core debug-ultrafast)"]
+				},
+				{
+					"name": "cheat",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core cheat && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core cheat)"]
+				},
+				{
+					"name": "tuner",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core tuner && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core tuner)"]
+				},
+				{
+					"name": "ultrafast",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core ultrafast && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core ultrafast)"]
+				},
+				{
+					"name": "cheat-ultrafast",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core cheat-ultrafast && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core cheat-ultrafast)"]
+				},
+				{
+					"name": "assert",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core assert && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core assert)"]
+				},
+				{
+					"name": "profiler",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core profiler && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core profiler)"]
+				},
+				{
+					"name": "release",
+					"cmd": ["./build_and_install_single_cartridge_with_data.sh core release && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core release)"]
+				},
+			]
+		},
+		{
+			"name": "Game: build and run full game",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./build_and_install_all_cartridges.sh debug && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh titlemenu debug)"],
+			"file_regex": "(.*\\.sh)(?:\\: line )([\\d]+)(?:\\:)([\\d]+)? (.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax",
+			"variants":
+			[
+				{
+					"name": "debug",
+					"cmd": ["./build_and_install_all_cartridges.sh debug && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh titlemenu debug)"]
+				},
+				{
+					"name": "cheat",
+					"cmd": ["./build_and_install_all_cartridges.sh cheat && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh titlemenu cheat)"]
+				},
+				{
+					"name": "assert",
+					"cmd": ["./build_and_install_all_cartridges.sh assert && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh titlemenu assert)"]
+				},
+				{
+					"name": "tuner",
+					"cmd": ["./build_and_install_all_cartridges.sh tuner && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh titlemenu tuner)"]
+				},
+				{
+					"name": "release",
+					"cmd": ["./build_and_install_all_cartridges.sh release && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh titlemenu release)"]
+				},
+			]
+		},
+		{
+			"name": "Game: build and run itests core",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./build_and_install_single_cartridge_with_data.sh core itest --itest && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core itest --itest)"],
+			"file_regex": "(.*\\.sh)(?:\\: line )([\\d]+)(?:\\:)([\\d]+)? (.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax",
+		},
+		{
+			"name": "Game: build and run pico8 utests",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./build_pico8_utests.sh && (./pico-boots/scripts/reload.sh || ./run_pico8_utests.sh)"],
+			"file_regex": "(.*\\.sh)(?:\\: line )([\\d]+)(?:\\:)([\\d]+)? (.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Game: start",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./run_cartridge.sh core debug"],
+			"syntax": "Packages/Python/Python.sublime-syntax",
+			"variants":
+			[
+				{
+					"name": "core debug",
+					"cmd": ["./run_cartridge.sh core debug"]
+				},
+				{
+					"name": "core debug-ultrafast",
+					"cmd": ["./run_cartridge.sh core debug-ultrafast"]
+				},
+				{
+					"name": "core cheat",
+					"cmd": ["./run_cartridge.sh core cheat"]
+				},
+				{
+					"name": "core tuner",
+					"cmd": ["./run_cartridge.sh core tuner"]
+				},
+				{
+					"name": "core ultrafast",
+					"cmd": ["./run_cartridge.sh core ultrafast"]
+				},
+				{
+					"name": "core cheat-ultrafast",
+					"cmd": ["./run_cartridge.sh core cheat-ultrafast"]
+				},
+				{
+					"name": "core assert",
+					"cmd": ["./run_cartridge.sh core assert"]
+				},
+				{
+					"name": "core profiler",
+					"cmd": ["./run_cartridge.sh core profiler"]
+				},
+				{
+					"name": "core release",
+					"cmd": ["./run_cartridge.sh core release"]
+				},
+				{
+					"name": "itests core",
+					"cmd": ["./run_cartridge.sh core itest --itest"],
+				},
+				{
+					"name": "pico8 utests",
+					"cmd": ["./run_pico8_utests.sh"],
+				},
+			]
+		},
+		{
+			"name": "Game: install cartridge core (with data)",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./install_single_cartridge_with_data.sh core debug"],
+			"syntax": "Packages/Python/Python.sublime-syntax",
+			"variants":
+			[
+				{
+					"name": "debug",
+					"cmd": ["./install_single_cartridge_with_data.sh core debug"]
+				},
+				{
+					"name": "debug-ultrafast",
+					"cmd": ["./install_single_cartridge_with_data.sh core debug-ultrafast"]
+				},
+				{
+					"name": "cheat",
+					"cmd": ["./install_single_cartridge_with_data.sh core cheat"]
+				},
+				{
+					"name": "tuner",
+					"cmd": ["./install_single_cartridge_with_data.sh core tuner"]
+				},
+				{
+					"name": "ultrafast",
+					"cmd": ["./install_single_cartridge_with_data.sh core ultrafast"]
+				},
+				{
+					"name": "cheat-ultrafast",
+					"cmd": ["./install_single_cartridge_with_data.sh core cheat-ultrafast"]
+				},
+				{
+					"name": "sandbox",
+					"cmd": ["./install_single_cartridge_with_data.sh core sandbox"]
+				},
+				{
+					"name": "assert",
+					"cmd": ["./install_single_cartridge_with_data.sh core assert"]
+				},
+				{
+					"name": "profiler",
+					"cmd": ["./install_single_cartridge_with_data.sh core profiler"]
+				},
+				{
+					"name": "release",
+					"cmd": ["./install_single_cartridge_with_data.sh core release"]
+				},
+			]
+		},
+		{
+			"name": "Game: install all cartridges (with data)",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./install_all_cartridges.sh debug"],
+			"syntax": "Packages/Python/Python.sublime-syntax",
+			"variants":
+			[
+				{
+					"name": "debug",
+					"cmd": ["./install_all_cartridges.sh debug"]
+				},
+				{
+					"name": "cheat",
+					"cmd": ["./install_all_cartridges.sh cheat"]
+				},
+				{
+					"name": "release",
+					"cmd": ["./install_all_cartridges.sh release"]
+				},
+				{
+					"name": "cheat (png)",
+					"cmd": ["./install_all_cartridges.sh cheat png"]
+				},
+				{
+					"name": "release (png)",
+					"cmd": ["./install_all_cartridges.sh release png"]
+				}
+			]
+		},
+		{
+			"name": "Game: export and patch cartridge release",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./export_and_patch_cartridge_release.sh"],
+		},
+		{
+			"name": "Game: upload cartridge release",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./upload_cartridge_release.sh"],
+		},
+		{
+			"name": "Game: build full game release, export and patch it, upload it",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./build_and_install_all_cartridges.sh release && ./export_and_patch_cartridge_release.sh && ./upload_cartridge_release.sh"],
+		},
+		{
+			"name": "Game: test",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["./test.sh -f $file_base_name"],
+			"env": {
+				// won't work on headless_itests_utest, please use headless_itests command
+				"ITEST_CARTRIDGE_SUFFIX": "ignore"
+			},
+			// known limitation: last \n won't be detected in build output, so cannot display multi-line errors
+			"file_regex": "((?:pico-boots/src|src)\\/[-\\w\\/]+\\.lua)(?:\\:| @ )([\\d]+)(?:\\:)?([\\d]+)?\\n?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax",
+			"variants":
+			[
+				{
+					"name": "(solo)",
+					"cmd": ["./test.sh -f $file_base_name -m solo"],
+					"env": {
+						// won't work on headless_itests_utest, please use headless_itests command
+						"ITEST_CARTRIDGE_SUFFIX": "ignore"
+					}
+				},
+				{
+					"name": "(all)",
+					"cmd": ["./test.sh -f $file_base_name -m all"],
+					"env": {
+						// won't work on headless_itests_utest, please use headless_itests command
+						"ITEST_CARTRIDGE_SUFFIX": "ignore"
+					}
+				},
+				{
+					"name": "*",
+					"cmd": ["./test.sh"],
+					"env": {
+						// won't work on headless_itests_utest, please use headless_itests command
+						"ITEST_CARTRIDGE_SUFFIX": "ignore"
+					}
+				},
+				{
+					"name": "* (solo)",
+					"cmd": ["./test.sh -m solo"],
+					"env": {
+						// won't work on headless_itests_utest, please use headless_itests command
+						"ITEST_CARTRIDGE_SUFFIX": "ignore"
+					}
+				},
+				{
+					"name": "* (all)",
+					"cmd": ["./test.sh -m all"],
+					"env": {
+						// won't work on headless_itests_utest, please use headless_itests command
+						"ITEST_CARTRIDGE_SUFFIX": "ignore"
+					}
+				},
+				{
+					"name": "headless_itests core",
+					"cmd": ["./test.sh -f headless_itests"],
+					"env": {
+						"ITEST_CARTRIDGE_SUFFIX": "core"
+					}
+				},
+				{
+					"name": "headless_itests core (coverage)",
+					"cmd": ["./test.sh -C -f headless_itests"],
+					"env": {
+						"ITEST_CARTRIDGE_SUFFIX": "core"
+					}
+				},
+				{
+					"name": "headless_itests core (render)",
+					"cmd": ["./test.sh -f headless_itests"],
+					"env": {
+						"ITEST_CARTRIDGE_SUFFIX": "core",
+						"ENABLE_RENDER": "1"
+					}
+				},
+				{
+					"name": "headless_itests core (render + coverage)",
+					"cmd": ["./test.sh -C -f headless_itests"],
+					"env": {
+						"ITEST_CARTRIDGE_SUFFIX": "core",
+						"ENABLE_RENDER": "1"
+					}
+				},
+				{
+					"name": "headless_itests core - solo",
+					"cmd": ["./test.sh -f headless_itests -m solo"],
+					"env": {
+						"ITEST_CARTRIDGE_SUFFIX": "core"
+					}
+				},
+				{
+					"name": "headless_itests core - solo (render)",
+					"cmd": ["./test.sh -f headless_itests -m solo"],
+					"env": {
+						"ITEST_CARTRIDGE_SUFFIX": "core",
+						"ENABLE_RENDER": "1"
+					}
+				}
+			]
+		},
+		{
+			"name": "Engine: test",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["./test.sh -f $file_base_name"],
+			// known limitation: last \n won't be detected in build output, so cannot display multi-line errors
+			"file_regex": "((?:src)\\/[-\\w\\/]+\\.lua)(?:\\:| @ )([\\d]+)(?:\\:)?([\\d]+)?\\n?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax",
+			"variants":
+			[
+				{
+					"name": "(solo)",
+					"cmd": ["./test.sh -f $file_base_name -m solo"]
+				},
+				{
+					"name": "(all)",
+					"cmd": ["./test.sh -f $file_base_name -m all"]
+				},
+				{
+					"name": "*",
+					"cmd": ["./test.sh"]
+				},
+				{
+					"name": "* (solo)",
+					"cmd": ["./test.sh -m solo"]
+				},
+				{
+					"name": "* (all)",
+					"cmd": ["./test.sh -m all"]
+				}
+			]
+		},
+		{
+			"name": "All: test",
+			"working_dir": "${project_path}",
+			"shell": true,
+			// note that luacov report is generated in the working directory, so the second test report will overwrite the previous one
+			"cmd": ["ITEST_CARTRIDGE_SUFFIX=ignore ./test.sh && echo '' && ITEST_CARTRIDGE_SUFFIX=titlemenu ./test.sh -f headless_itests && echo '' && ITEST_CARTRIDGE_SUFFIX=core ./test.sh -f headless_itests && echo '' && ITEST_CARTRIDGE_SUFFIX=stage_clear ./test.sh -f headless_itests && echo '' && ITEST_CARTRIDGE_SUFFIX=stage_intro ./test.sh -f headless_itests && echo '' && pico-boots/test.sh"],
+			// known limitation: last \n won't be detected in build output, so cannot display multi-line errors
+			"file_regex": "((?:pico-boots/src|src)\\/[-\\w\\/]+\\.lua)(?:\\:| @ )([\\d]+)(?:\\:)?([\\d]+)?\\n?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax",
+			"variants":
+			[
+				{
+					// if you aim for 100% coverage including render methods for headless itests
+					"name": "(render)",
+					"env": {
+						"ENABLE_RENDER": "1"
+					}
+				}
+			]
+		},
+		{
+			"name": "Engine: Prebuild: test preprocess",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["python3 -m scripts.test_preprocess"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Engine: Prebuild: test replace_strings",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["python3 -m scripts.test_replace_strings"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Engine: Prebuild: test generate_ordered_require_file",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["python3 -m scripts.test_generate_ordered_require_file"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Engine: Prebuild: test add_require",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["python3 -m scripts.test_add_require"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Engine: Postbuild: test minify",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["python3 -m scripts.test_minify"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Engine: Postbuild: test unify",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["python3 -m scripts.test_unify"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Engine: Postbuild: test add_metadata",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["python3 -m scripts.test_add_metadata"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Engine: Export: test adapt_for_png",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["python3 -m scripts.test_adapt_for_png"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Engine: Export: test patch_pico8_js",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["python3 -m scripts.test_patch_pico8_js"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Engine: Tool: test offset bgm tracks",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["python3 -m scripts.test_offset_bgm_tracks"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Engine: Doc: test generate_dependency_graph",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["python3 -m scripts.test_generate_dependency_graph"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "Engine: Doc: test analyze",
+			"working_dir": "${project_path}/pico-boots",
+			"shell": true,
+			"cmd": ["python3 -m scripts.test_analyze"],
+			"file_regex": "\"(.*\\.py)\"(?:, line )([\\d]+)(?:\\:)?([\\d]+)?(.*)",
+			"syntax": "Packages/Python/Python.sublime-syntax"
+		},
+		{
+			"name": "lua: parse",
+			"selector": "source.lua,source.p8",
+			"working_dir": "${project_path}",
+			"shell": true,
+			"cmd": ["luac -p $file"],
+			"file_regex": "((?:src|tests)\\/[-\\w\\/]+\\.lua)(?:\\:| @ )([\\d]+)(?:\\:)?([\\d]+)?\\n?(.*)"
+		},
+	],
+	"folders":
+	[
+		{
+			"folder_exclude_patterns":
+			[
+				"backup",
+				"carts"
+			],
+			"path": "~/.lexaloffle/pico-8"
+		},
+		{
+			"folder_exclude_patterns":
+			[
+				".git",
+				"backup",
+				"build",
+				"intermediate"
+			],
+			"path": "."
+		}
+	],
+	"syntax_override":
+	{
+		"\\.lua$":
+		[
+			"sublime-PICO-8/PICO-8"
+		],
+		"\\.luacov":
+		[
+			"Lua/Lua"
+		]
+	}
+}
