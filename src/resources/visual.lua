@@ -16,6 +16,7 @@ local sprite_data_t = transform(
     --#endif
         menu_cursor                     = {    10, 0,    1, 1,    4, 4,               colors.green},
     -- teacher                             = {...},
+    background_lights_half_left         = {    0, 10,    7, 6,   52, 3,               colors.pink},
 
     -- ANIMATION SPRITES
     -- teacher_arms                        = {     1, 0,    2, 3,    0,  0,              colors.pink},
