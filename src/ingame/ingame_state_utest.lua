@@ -28,6 +28,13 @@ describe('ingame_state', function ()
       end)
 
       describe('update', function ()
+        it('should preserve arm level if no input', function ()
+          igs.teacher_arm_level = 2
+
+          igs:update()
+
+          assert.are_equal(2, igs.teacher_arm_level)
+        end)
       end)
 
       describe('render', function ()

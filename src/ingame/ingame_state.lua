@@ -1,6 +1,7 @@
 local gamestate = require("engine/application/gamestate")
 
 -- local flow = require("engine/application/flow")
+local input = require("engine/input/input")
 local text_helper = require("engine/ui/text_helper")
 
 local visual = require("resources/visual")
@@ -10,7 +11,9 @@ local ingame_state = derived_class(gamestate)
 
 ingame_state.type = ':ingame'
 
-function ingame_state:_init()
+function ingame_state:init()
+  -- state vars
+  self.teacher_arm_level = 1
 end
 
 function ingame_state:on_enter()
@@ -20,6 +23,11 @@ function ingame_state:on_exit()
 end
 
 function ingame_state:update()
+  if input:is_just_pressed(button_ids.up) then
+    self.teacher_arm_level = max(self.teacher_arm_level - 1, 1)
+  elseif input:is_just_pressed(button_ids.down) then
+    self.teacher_arm_level = min(self.teacher_arm_level + 1, 3)
+  end
 end
 
 function ingame_state:render()
@@ -59,7 +67,7 @@ function ingame_state:render()
   local line_right = board_inside_right - line_margin_x
   local line_y0 = board_inside_top + 11
   for i=0,2 do
-    local line_y = line_y0 + 5 * i
+    local line_y = line_y0 + 6 * i
     line(line_left, line_y, line_right, line_y, colors.light_gray)
     -- obstacle start-up indicator
     line(line_right + 2, line_y - 1, line_right + 2, line_y + 1, colors.light_gray)
@@ -69,7 +77,7 @@ function ingame_state:render()
 
   local teacher_position = vector(47, 24)
   visual.sprite_data_t.teacher:render(teacher_position)
-  visual.sprite_data_t.teacher_arm_level1:render(teacher_position + visual.teacher_arm_attachment_offset)
+  visual.teacher_arm_sprites_by_level[self.teacher_arm_level]:render(teacher_position + visual.teacher_arm_attachment_offset)
   visual.sprite_data_t.teacher_pants:render(teacher_position + visual.teacher_pants_attachment_offset)
 end
 

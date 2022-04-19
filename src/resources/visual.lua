@@ -36,6 +36,13 @@ visual.sprite_data_t = sprite_data_t
 visual.teacher_arm_attachment_offset = vector(14, 13)
 visual.teacher_pants_attachment_offset = vector(5, 29)
 
+-- convenient access
+visual.teacher_arm_sprites_by_level = {
+  sprite_data_t.teacher_arm_level1,
+  sprite_data_t.teacher_arm_level2,
+  sprite_data_t.teacher_arm_level3,
+}
+
 -- ANIMATIONS
 visual.animated_sprite_data_t = {
   -- manual construction via sprite direct access appears longer than animated_sprite_data.create in code,
