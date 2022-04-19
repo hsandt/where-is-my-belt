@@ -22,6 +22,7 @@ version=`cat "$data_path/version.txt"`
 # to allow constant substitution
 # Ex: game_constant_module_paths_string="${game_src_path}/data/numerical_data.lua"
 game_constant_module_paths_string="${game_src_path}/data/sprite_flags.lua \
+${game_src_path}/data/ingame_numerical_data.lua \
 ${game_src_path}/resources/audio.lua \
 ${game_src_path}/resources/memory.lua \
 "
