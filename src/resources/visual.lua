@@ -12,11 +12,15 @@ local sprite_data_t = transform(
 
     -- STATIC SPRITES
     --#if mouse
-        cursor                          = {     9, 0,    1, 1,    0, 0,               colors.pink},
+    cursor                              = {     9, 0,    1, 1,    0, 0,               colors.pink},
     --#endif
-        menu_cursor                     = {    10, 0,    1, 1,    4, 4,               colors.green},
-    -- teacher                             = {...},
-    background_lights_half_left         = {    0, 10,    7, 6,   52, 3,               colors.pink},
+    menu_cursor                         = {    10, 0,    1, 1,    4, 4,               colors.green},
+    teacher                             = {     0, 1,    3, 7,    0, 0,               colors.pink},
+    teacher_arm_level1                  = {     3, 1,    2, 3,    0,17,               colors.pink},
+    teacher_arm_level2                  = {     5, 2,    2, 2,    0, 9,               colors.pink},
+    teacher_arm_level3                  = {     7, 2,    2, 2,    0, 9,               colors.pink},
+    teacher_pants                       = {     3, 5,    2, 2,    1, 0,               colors.pink},
+    background_lights_half_left         = {     0,10,    7, 6,   52, 3,               colors.pink},
 
     -- ANIMATION SPRITES
     -- teacher_arms                        = {     1, 0,    2, 3,    0,  0,              colors.pink},
@@ -27,6 +31,10 @@ local sprite_data_t = transform(
 )
 
 visual.sprite_data_t = sprite_data_t
+
+-- extra information
+visual.teacher_arm_attachment_offset = vector(14, 13)
+visual.teacher_pants_attachment_offset = vector(5, 29)
 
 -- ANIMATIONS
 visual.animated_sprite_data_t = {

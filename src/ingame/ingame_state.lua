@@ -25,6 +25,8 @@ end
 function ingame_state:render()
   cls()
 
+  -- background
+
   rectfill(0, 0, 127, 63, colors.dark_blue)
   rectfill(0, 64, 127, 127, colors.indigo)
 
@@ -32,8 +34,12 @@ function ingame_state:render()
   -- draw right part by flipping it
   visual.sprite_data_t.background_lights_half_left:render(vector(65, 77), true)
 
-  local title_y = 48
-  text_helper.print_centered("ingame", 64, title_y, colors.white)
+  -- characters
+
+  local teacher_position = vector(47, 24)
+  visual.sprite_data_t.teacher:render(teacher_position)
+  visual.sprite_data_t.teacher_arm_level1:render(teacher_position + visual.teacher_arm_attachment_offset)
+  visual.sprite_data_t.teacher_pants:render(teacher_position + visual.teacher_pants_attachment_offset)
 end
 
 return ingame_state

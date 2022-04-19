@@ -33,24 +33,23 @@ describe('ingame_state', function ()
       describe('render', function ()
 
         setup(function ()
-          stub(text_helper, "print_centered")
+          stub(_G, "cls")
           -- stub text_igs.draw completely to avoid altering the count of text_helper.print_centered calls
         end)
 
         teardown(function ()
-          text_helper.print_centered:revert()
+          cls:revert()
         end)
 
         after_each(function ()
-          text_helper.print_centered:clear()
+          cls:clear()
         end)
-
-        it('should print "main igs" centered, in white', function ()
+        it('should call cls once', function ()
           igs:render()
 
-          local s = assert.spy(text_helper.print_centered)
+          local s = assert.spy(cls)
           s.was_called(1)
-          s.was_called_with("ingame", 64, 48, colors.white)
+          s.was_called_with()
         end)
 
       end)
