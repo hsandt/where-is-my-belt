@@ -76,6 +76,11 @@ function ingame_state:update()
           -- check vertical level and horizontal progress
           -- note that visually, fractional positions are floored, so use floor too for collision check
           if self.teacher_arm_level == i and flr(obstacle_rel_positions[j]) == 0 then
+            -- detected collision!
+
+            -- remove the obstacle so we're sure we won't hit it again next frame
+            deli(obstacle_rel_positions, j)
+
             -- on each collision, make pants fall a little more
             self.teacher_pants_falling_step = self.teacher_pants_falling_step + 1
             if self.teacher_pants_falling_step >= 7 then
