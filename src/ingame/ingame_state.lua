@@ -249,7 +249,8 @@ function ingame_state:render()
 
   -- white eye
   local eye_height = 10
-  sspr(88, 0, 16, eye_height, 56, 83, 16, eye_height)
+  local eye_center_y = 77
+  sspr(88, 0, 16, eye_height, 56, eye_center_y, 16, eye_height)
 
   local floored_suspicion_level = flr(self.suspicion_level)
   if floored_suspicion_level > 0 then
@@ -259,7 +260,7 @@ function ingame_state:render()
     local fill_height = floored_suspicion_level
     -- we fill from bottom to top, so complement height to get the offset
     local offset = eye_height - fill_height
-    sspr(88, 0 + offset, 16, fill_height, 56, 83 + offset, 16, fill_height)
+    sspr(88, 0 + offset, 16, fill_height, 56, eye_center_y + offset, 16, fill_height)
   end
 
   pal() -- also clears palt
