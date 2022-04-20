@@ -97,6 +97,11 @@ function ingame_state:update()
     self.frames_since_start_play = self.frames_since_start_play + 1
 
     self:check_failure()
+  elseif self.phase == ingame_phase.failure then
+    -- press O to retry
+    if input:is_just_pressed(button_ids.o) then
+      self:start_challenge()
+    end
   end
 end
 
@@ -209,6 +214,9 @@ function ingame_state:render()
       text_helper.print_aligned("your pupils saw you", screen_width / 2, 91, alignments.center, colors.white, colors.black)
       text_helper.print_aligned("pull your pants too often!", screen_width / 2, 99, alignments.center, colors.white, colors.black)
     end
+    -- until either p8tool listrawlua is fixed, or I support post-build replace glyph '##o',
+    --  I'll have to print standard characters, avoiding input glyphs
+    text_helper.print_aligned("press (o) to retry", screen_width / 2, 115, alignments.center, colors.yellow, colors.black)
   end
 end
 
