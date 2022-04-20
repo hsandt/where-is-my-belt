@@ -17,7 +17,9 @@ local sprite_data_t = transform(
     menu_cursor                         = {    10, 0,    1, 1,    4, 4,               colors.green},
     -- suspicion_eye added for reference, but due to the need to fill it with sspr in red,
     --  we won't be using tile-wide data but rather pixel-precise blitting
-    -- suspicion_eye                       = {    11, 0,    2, 2,    8, 5,               colors.pink},
+    -- we do use the outline, however
+    -- suspicion_eye_fill                  = {    11, 0,    2, 2,    6, 5,               colors.pink},
+    suspicion_eye_outline               = {    13, 0,    3, 2,    9, 6,               colors.pink},
     teacher                             = {     0, 1,    3, 7,    0, 0,               colors.pink},
     teacher_arm_level1                  = {     3, 1,    2, 3,    0,17,               colors.pink},
     teacher_arm_level2                  = {     5, 2,    2, 2,    0, 9,               colors.pink},

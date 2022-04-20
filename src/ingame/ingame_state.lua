@@ -245,12 +245,22 @@ function ingame_state:render()
 
   -- suspicion eye
 
+  local eye_center_x = 64
+  local eye_center_y = 82
+  local eye_fill_pivot_x = 6
+  local eye_fill_pivot_y = 5
+  local eye_fill_center_x = eye_center_x - eye_fill_pivot_x
+  local eye_fill_center_y = eye_center_y - eye_fill_pivot_y
+
+  -- outline
+  visual.sprite_data_t.suspicion_eye_outline:render(vector(eye_center_x, eye_center_y))
+
+  -- white eye and red eye use the same sprite, with pink transparency
   palt(colors.pink)
 
   -- white eye
   local eye_height = 10
-  local eye_center_y = 77
-  sspr(88, 0, 16, eye_height, 56, eye_center_y, 16, eye_height)
+  sspr(88, 0, 16, eye_height, eye_fill_center_x, eye_fill_center_y, 16, eye_height)
 
   local floored_suspicion_level = flr(self.suspicion_level)
   if floored_suspicion_level > 0 then
@@ -260,7 +270,7 @@ function ingame_state:render()
     local fill_height = floored_suspicion_level
     -- we fill from bottom to top, so complement height to get the offset
     local offset = eye_height - fill_height
-    sspr(88, 0 + offset, 16, fill_height, 56, eye_center_y + offset, 16, fill_height)
+    sspr(88, 0 + offset, 16, fill_height, eye_fill_center_x, eye_fill_center_y + offset, 16, fill_height)
   end
 
   pal() -- also clears palt
