@@ -5,6 +5,7 @@ local input = require("engine/input/input")
 local text_helper = require("engine/ui/text_helper")
 
 local ingame_numerical_data = require("data/ingame_numerical_data")
+local ingame_phase = require("ingame/ingame_phase")
 local visual = require("resources/visual")
 
 -- ingame: gamestate for playing either a mission or in infinite mode
