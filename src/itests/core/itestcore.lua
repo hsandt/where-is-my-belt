@@ -35,7 +35,7 @@ itest_manager:register_itest('#solo play ingame',
   end)
 
   -- wait without doing anything to catch obvious errors
-  wait(2.0)
+  wait(10.0)
 
   -- check that we are still in the ingame state
   final_assert(function ()

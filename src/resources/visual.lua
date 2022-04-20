@@ -19,7 +19,15 @@ local sprite_data_t = transform(
     teacher_arm_level1                  = {     3, 1,    2, 3,    0,17,               colors.pink},
     teacher_arm_level2                  = {     5, 2,    2, 2,    0, 9,               colors.pink},
     teacher_arm_level3                  = {     7, 2,    2, 2,    0, 9,               colors.pink},
-    teacher_pants                       = {     3, 5,    2, 2,    1, 0,               colors.pink},
+    teacher_boxer_shorts                = {     3, 4,    2, 1,    0, 0,               colors.green},
+    teacher_pants0                      = {     0, 8,    2, 2,    1, 0,               colors.pink},
+    teacher_pants1                      = {     2, 8,    2, 2,    1, 0,               colors.pink},
+    teacher_pants2                      = {     4, 8,    2, 2,    1, 0,               colors.pink},
+    teacher_pants3                      = {     6, 8,    2, 2,    1, 0,               colors.pink},
+    teacher_pants4                      = {     8, 8,    2, 2,    1, 0,               colors.pink},
+    teacher_pants5                      = {    10, 8,    2, 2,    1, 0,               colors.pink},
+    teacher_pants6                      = {    12, 8,    2, 2,    1, 0,               colors.pink},
+    teacher_pants7                      = {    14, 8,    2, 2,    1, 0,               colors.pink},
     background_lights_half_left         = {     0,10,    7, 6,   52, 3,               colors.pink},
 
     -- ANIMATION SPRITES
@@ -41,6 +49,16 @@ visual.teacher_arm_sprites_by_level = {
   sprite_data_t.teacher_arm_level1,
   sprite_data_t.teacher_arm_level2,
   sprite_data_t.teacher_arm_level3,
+}
+visual.teacher_pants_by_falling_step = {
+  [0] = sprite_data_t.teacher_pants0,
+  sprite_data_t.teacher_pants1,
+  sprite_data_t.teacher_pants2,
+  sprite_data_t.teacher_pants3,
+  sprite_data_t.teacher_pants4,
+  sprite_data_t.teacher_pants5,
+  sprite_data_t.teacher_pants6,
+  sprite_data_t.teacher_pants7,
 }
 
 -- ANIMATIONS

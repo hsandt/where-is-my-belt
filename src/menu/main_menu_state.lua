@@ -52,8 +52,6 @@ end
 function main_menu_state:render()
   cls()
 
-  printh("MAIN MENU RENDER")
-
   local title_y = 48
   text_helper.print_centered("main menu", 64, title_y, colors.white)
 

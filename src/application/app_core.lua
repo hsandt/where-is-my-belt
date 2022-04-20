@@ -105,8 +105,6 @@ end
 
 --#ifn release
 function app_core:on_render() -- override
-  printh("on_render")
-
 --#if profiler
   profiler.window:render()
 --#endif
