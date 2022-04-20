@@ -53,9 +53,14 @@ end
 
 function ingame_state:update()
   if self.phase == ingame_phase.play then
-    if input:is_just_pressed(button_ids.up) then
+    if input:is_just_pressed(button_ids.o) then
+      -- reset falling pants
+      self.teacher_pants_falling_step = 0
+    elseif input:is_just_pressed(button_ids.up) then
+      -- move arm up if possible
       self.teacher_arm_level = max(self.teacher_arm_level - 1, 1)
     elseif input:is_just_pressed(button_ids.down) then
+      -- move arm down if possible
       self.teacher_arm_level = min(self.teacher_arm_level + 1, 3)
     end
 
