@@ -218,6 +218,14 @@ function ingame_state:render()
     --  I'll have to print standard characters, avoiding input glyphs
     text_helper.print_aligned("press (o) to retry", screen_width / 2, 115, alignments.center, colors.yellow, colors.black)
   end
+
+  -- show timer, which indicates how long player "survived"
+  --  also show it in failure phase since player wants to know how much they "scored"
+  -- frames / 60 -> seconds, * 100 -> hundredths of second
+  -- so multiply elapsed frames by 100 / 60 = 5 / 3
+  local timer_second_hundredths = flr(self.frames_since_start_play * 5 / 3)
+  -- when clean, use format_number(..., 2) instead of tostr to fix the jumping decimal issue
+  text_helper.print_aligned(tostr(timer_second_hundredths / 100), 126, 1, alignments.right, colors.white, colors.black)
 end
 
 -- helpers
@@ -231,9 +239,11 @@ end
 
 function ingame_state:start_challenge()
   self.phase = ingame_phase.play
+  self.failure_reason = failure_reason.none
 
   self:setup_challenge_state()
 
+  -- prepare the first wave of obstacles
   for i=1,3 do
     self:set_rand_next_obstacle_spawn_time(i)
   end
