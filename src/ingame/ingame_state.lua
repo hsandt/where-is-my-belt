@@ -34,14 +34,72 @@ end
 function ingame_state:on_exit()
 end
 
+function ingame_state:start_challenge()
+  self.phase = ingame_phase.play
+  self.failure_reason = failure_reason.none
+
+  self:setup_challenge_state()
+
+  -- prepare the first wave of obstacles
+  for i=1,3 do
+    self:set_rand_next_obstacle_spawn_time(i)
+  end
+end
+
+function ingame_state:setup_challenge_state()
+  -- frames elapsed since entering play phase (only updated in play phase)
+  self.frames_since_start_play = 0
+
+  -- teacher arm level: int between 1 and 3
+  self.teacher_arm_level = 1
+
+  -- how much pants is falling, from 0 (initial) to 7 (defeat)
+  self.teacher_pants_falling_step = 0
+
+  -- suspicion level of pupils (number), from 0 (initial) to 10 (defeat)
+  -- each time teacher pulls their pants, pupils get more suspicious
+  -- it can be fractional due to cooldown speed
+  self.suspicion_level = 0
+
+  -- after suspicion increased, this is set to prevent immediate cooldown
+  self.time_before_suspicion_cooldown = 0
+
+  -- obstacle positions by level: sequence of 3 sequences of numbers
+  --  each embedded sequence contains an arbitrary number of obstacle
+  --  relative positions, between:
+  --  ingame_numerical_data.obstacle_relative_position_min
+  --  (the left-most position on the line)
+  --  ingame_numerical_data.obstacle_relative_position_max
+  --  (the right-most and first position on the line, excluding obstacle incoming preview)
+  --  0 is the teacher chalk x (position where we check for obstacle collision)
+  self.obstacle_rel_positions_by_level = {{}, {}, {}}
+
+  -- sequence of time before next obstacle spawn in frames, indexed by line level
+  --  0 is a dummy default, we must randomly generate it on start or we will create
+  --  an impassable wall of obstacles
+  self.time_before_next_obstacle_spawn_by_level = {0, 0, 0}
+end
+
 function ingame_state:update()
   -- only update core gameplay elements in play phase, to avoid detecting collisions, etc.
   --  after success/failure
   if self.phase == ingame_phase.play then
+
+    -- countdown time before suspicion cooldown can be applied, if any
+    -- (done before actually checking cooldown, so as to advantage player by 1 frame)
+    if self.time_before_suspicion_cooldown > 0 then
+      self.time_before_suspicion_cooldown = self.time_before_suspicion_cooldown - 1
+    end
+
+    -- apply suspicion cooldown before possible pull_pants to avoid decreasing value right after a clamp,
+    --  making it impossible to reach max value at the end of update and so never lose by suspicion
+    if self.suspicion_level > 0 and self.time_before_suspicion_cooldown <= 0 then
+      self.suspicion_level = self.suspicion_level - ingame_numerical_data.suspicion_cooldown_per_second / 60
+    end
+
     if input:is_just_pressed(button_ids.o) then
       -- reset falling pants
-      self.teacher_pants_falling_step = 0
-      self.suspicion_level = min(self.suspicion_level + 1, 10)
+      self:pull_pants()
     elseif input:is_just_pressed(button_ids.up) then
       -- move arm up if possible
       self.teacher_arm_level = max(self.teacher_arm_level - 1, 1)
@@ -94,9 +152,9 @@ function ingame_state:update()
       end
     end
 
-    self.frames_since_start_play = self.frames_since_start_play + 1
-
     self:check_failure()
+
+    self.frames_since_start_play = self.frames_since_start_play + 1
   elseif self.phase == ingame_phase.failure then
     -- press O to retry
     if input:is_just_pressed(button_ids.o) then
@@ -193,11 +251,12 @@ function ingame_state:render()
   local eye_height = 10
   sspr(88, 0, 16, eye_height, 56, 83, 16, eye_height)
 
-  if self.suspicion_level > 0 then
+  local floored_suspicion_level = flr(self.suspicion_level)
+  if floored_suspicion_level > 0 then
     -- fill eye in red by drawing it again, but partially this time,
     --  with red instead of white
     pal(colors.white, colors.red)
-    local fill_height = self.suspicion_level
+    local fill_height = floored_suspicion_level
     -- we fill from bottom to top, so complement height to get the offset
     local offset = eye_height - fill_height
     sspr(88, 0 + offset, 16, fill_height, 56, 83 + offset, 16, fill_height)
@@ -237,48 +296,6 @@ end
 
 -- play
 
-function ingame_state:start_challenge()
-  self.phase = ingame_phase.play
-  self.failure_reason = failure_reason.none
-
-  self:setup_challenge_state()
-
-  -- prepare the first wave of obstacles
-  for i=1,3 do
-    self:set_rand_next_obstacle_spawn_time(i)
-  end
-end
-
-function ingame_state:setup_challenge_state()
-  -- frames elapsed since entering play phase (only updated in play phase)
-  self.frames_since_start_play = 0
-
-  -- teacher arm level: int between 1 and 3
-  self.teacher_arm_level = 1
-
-  -- how much pants is falling, from 0 (initial) to 7 (defeat)
-  self.teacher_pants_falling_step = 0
-
-  -- suspicion level of pupils, from 0 (initial) to 10 (defeat)
-  -- each time teacher pulls their pants, pupils get more suspicious
-  self.suspicion_level = 0
-
-  -- obstacle positions by level: sequence of 3 sequences of numbers
-  --  each embedded sequence contains an arbitrary number of obstacle
-  --  relative positions, between:
-  --  ingame_numerical_data.obstacle_relative_position_min
-  --  (the left-most position on the line)
-  --  ingame_numerical_data.obstacle_relative_position_max
-  --  (the right-most and first position on the line, excluding obstacle incoming preview)
-  --  0 is the teacher chalk x (position where we check for obstacle collision)
-  self.obstacle_rel_positions_by_level = {{}, {}, {}}
-
-  -- sequence of time before next obstacle spawn in frames, indexed by line level
-  --  0 is a dummy default, we must randomly generate it on start or we will create
-  --  an impassable wall of obstacles
-  self.time_before_next_obstacle_spawn_by_level = {0, 0, 0}
-end
-
 function ingame_state:set_rand_next_obstacle_spawn_time(level)
     self.time_before_next_obstacle_spawn_by_level[level] = self:generate_rand_next_obstacle_spawn_time(level)
 end
@@ -298,6 +315,18 @@ function ingame_state:spawn_obstacle_and_prepare_next_one(level)
   add(self.obstacle_rel_positions_by_level[level], ingame_numerical_data.obstacle_relative_position_max)
   self:set_rand_next_obstacle_spawn_time(level)
 end
+
+-- game actions
+
+function ingame_state:pull_pants()
+  -- reset pants falling
+  self.teacher_pants_falling_step = 0
+
+  -- increase suspicion of pupils
+  self.suspicion_level = min(self.suspicion_level + ingame_numerical_data.suspicion_increase_on_pull_pants, 10)
+  self.time_before_suspicion_cooldown = ingame_numerical_data.delay_before_suspicion_cooldown
+end
+
 
 -- end of play
 

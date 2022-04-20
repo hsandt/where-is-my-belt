@@ -18,6 +18,9 @@ local ingame_numerical_data = {
   --  but updating every 10 frames is not reactive enough)
   -- set to 1 for update every frame (ignore jittering)
   obstacle_spawn_check_period = 2, -- in frames
+  suspicion_increase_on_pull_pants = 3,
+  suspicion_cooldown_per_second = 1,
+  delay_before_suspicion_cooldown = 30,  -- in frames
 }
 
 --(game_constants)
