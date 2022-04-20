@@ -5,6 +5,7 @@ local input = require("engine/input/input")
 local text_helper = require("engine/ui/text_helper")
 
 local ingame_numerical_data = require("data/ingame_numerical_data")
+local failure_reason = require("ingame/failure_reason")
 local ingame_phase = require("ingame/ingame_phase")
 local visual = require("resources/visual")
 
@@ -18,30 +19,12 @@ function ingame_state:init()
 
   -- current phase
   self.phase = ingame_phase.before_play
+  self.failure_reason = failure_reason.none
 
-  -- frames elapsed since entering play phase (only updated in play phase)
-  self.frames_since_start_play = 0
-
-  -- teacher arm level: int between 1 and 3
-  self.teacher_arm_level = 1
-
-  -- how much pants is falling, from 0 (initial) to 7 (defeat)
-  self.teacher_pants_falling_step = 0
-
-  -- obstacle positions by level: sequence of 3 sequences of numbers
-  --  each embedded sequence contains an arbitrary number of obstacle
-  --  relative positions, between:
-  --  ingame_numerical_data.obstacle_relative_position_min
-  --  (the left-most position on the line)
-  --  ingame_numerical_data.obstacle_relative_position_max
-  --  (the right-most and first position on the line, excluding obstacle incoming preview)
-  --  0 is the teacher chalk x (position where we check for obstacle collision)
-  self.obstacle_rel_positions_by_level = {{}, {}, {}}
-
-  -- sequence of time before next obstacle spawn in frames, indexed by line level
-  --  0 is a dummy default, we must randomly generate it on start or we will create
-  --  an impassable wall of obstacles
-  self.time_before_next_obstacle_spawn_by_level = {0, 0, 0}
+  -- note that most state vars are setup in setup_challenge_state
+  --  and we don't set them before as they should not be used before entering
+  --  play state, and there is no better default value to pick than setup_challenge_state
+  --  already does
 end
 
 function ingame_state:on_enter()
@@ -52,10 +35,13 @@ function ingame_state:on_exit()
 end
 
 function ingame_state:update()
+  -- only update core gameplay elements in play phase, to avoid detecting collisions, etc.
+  --  after success/failure
   if self.phase == ingame_phase.play then
     if input:is_just_pressed(button_ids.o) then
       -- reset falling pants
       self.teacher_pants_falling_step = 0
+      self.suspicion_level = min(self.suspicion_level + 1, 10)
     elseif input:is_just_pressed(button_ids.up) then
       -- move arm up if possible
       self.teacher_arm_level = max(self.teacher_arm_level - 1, 1)
@@ -87,11 +73,7 @@ function ingame_state:update()
             deli(obstacle_rel_positions, j)
 
             -- on each collision, make pants fall a little more
-            self.teacher_pants_falling_step = self.teacher_pants_falling_step + 1
-            if self.teacher_pants_falling_step >= 7 then
-              -- last falling step reached, player loses this challenge
-              self:lose()
-            end
+            self.teacher_pants_falling_step = min(self.teacher_pants_falling_step + 1, 7)
           end
         end
       end
@@ -113,6 +95,8 @@ function ingame_state:update()
     end
 
     self.frames_since_start_play = self.frames_since_start_play + 1
+
+    self:check_failure()
   end
 end
 
@@ -171,6 +155,8 @@ function ingame_state:render()
 
   -- characters
 
+  -- teacher
+
   local teacher_position = vector(47, 24)
   visual.sprite_data_t.teacher:render(teacher_position)
   visual.teacher_arm_sprites_by_level[self.teacher_arm_level]:render(teacher_position + visual.teacher_arm_attachment_offset)
@@ -181,8 +167,48 @@ function ingame_state:render()
   local pants_position = base_pants_position + vector(0, self.teacher_pants_falling_step)
   visual.teacher_pants_by_falling_step[self.teacher_pants_falling_step]:render(pants_position)
 
+  -- pupils & desks
+
+  -- left
+  visual.sprite_data_t.desk_left:render(vector(14, 127))
+  visual.sprite_data_t.pupil_left:render(vector(17, 127))
+  visual.sprite_data_t.chair_left:render(vector(15, 127))
+
+  -- right (symmetrical + extra light)
+  visual.sprite_data_t.desk_left:render(vector(screen_width - 14, 127), true)
+  visual.sprite_data_t.desk_right_light:render(vector(78, 104))  -- already oriented right
+  visual.sprite_data_t.pupil_left:render(vector(screen_width - 17, 127), true)
+  visual.sprite_data_t.chair_left:render(vector(screen_width - 15, 127), true)
+
+  -- suspicion eye
+
+  palt(colors.pink)
+
+  -- white eye
+  local eye_height = 10
+  sspr(88, 0, 16, eye_height, 56, 83, 16, eye_height)
+
+  if self.suspicion_level > 0 then
+    -- fill eye in red by drawing it again, but partially this time,
+    --  with red instead of white
+    pal(colors.white, colors.red)
+    local fill_height = self.suspicion_level
+    -- we fill from bottom to top, so complement height to get the offset
+    local offset = eye_height - fill_height
+    sspr(88, 0 + offset, 16, fill_height, 56, 83 + offset, 16, fill_height)
+  end
+
+  pal() -- also clears palt
+
+  -- phase-specific
+
   if self.phase == ingame_phase.failure then
-    text_helper.print_aligned("you lost the pants!", screen_width / 2, 91, alignments.center, colors.white, colors.black)
+    if self.failure_reason == failure_reason.pants then
+      text_helper.print_aligned("you lost the pants!", screen_width / 2, 91, alignments.center, colors.white, colors.black)
+    elseif self.failure_reason == failure_reason.suspicion then
+      text_helper.print_aligned("your pupils saw you", screen_width / 2, 91, alignments.center, colors.white, colors.black)
+      text_helper.print_aligned("pull your pants too often!", screen_width / 2, 99, alignments.center, colors.white, colors.black)
+    end
   end
 end
 
@@ -198,9 +224,41 @@ end
 function ingame_state:start_challenge()
   self.phase = ingame_phase.play
 
+  self:setup_challenge_state()
+
   for i=1,3 do
     self:set_rand_next_obstacle_spawn_time(i)
   end
+end
+
+function ingame_state:setup_challenge_state()
+  -- frames elapsed since entering play phase (only updated in play phase)
+  self.frames_since_start_play = 0
+
+  -- teacher arm level: int between 1 and 3
+  self.teacher_arm_level = 1
+
+  -- how much pants is falling, from 0 (initial) to 7 (defeat)
+  self.teacher_pants_falling_step = 0
+
+  -- suspicion level of pupils, from 0 (initial) to 10 (defeat)
+  -- each time teacher pulls their pants, pupils get more suspicious
+  self.suspicion_level = 0
+
+  -- obstacle positions by level: sequence of 3 sequences of numbers
+  --  each embedded sequence contains an arbitrary number of obstacle
+  --  relative positions, between:
+  --  ingame_numerical_data.obstacle_relative_position_min
+  --  (the left-most position on the line)
+  --  ingame_numerical_data.obstacle_relative_position_max
+  --  (the right-most and first position on the line, excluding obstacle incoming preview)
+  --  0 is the teacher chalk x (position where we check for obstacle collision)
+  self.obstacle_rel_positions_by_level = {{}, {}, {}}
+
+  -- sequence of time before next obstacle spawn in frames, indexed by line level
+  --  0 is a dummy default, we must randomly generate it on start or we will create
+  --  an impassable wall of obstacles
+  self.time_before_next_obstacle_spawn_by_level = {0, 0, 0}
 end
 
 function ingame_state:set_rand_next_obstacle_spawn_time(level)
@@ -225,9 +283,19 @@ end
 
 -- end of play
 
-function ingame_state:lose()
-  -- stop playing so we don't update more collisions
-  self.phase = ingame_phase.failure
+function ingame_state:check_failure()
+  -- in the rare case where you fail for multiple reasons at once (on the same frame),
+  --  this decides priority order
+
+  if self.teacher_pants_falling_step >= 7 then
+    -- last falling step reached, player loses this challenge
+    self.phase = ingame_phase.failure
+    self.failure_reason = failure_reason.pants
+  elseif self.suspicion_level >= 10 then
+    -- suspicion level reached max, player loses this challenge
+    self.phase = ingame_phase.failure
+    self.failure_reason = failure_reason.suspicion
+  end
 end
 
 return ingame_state
