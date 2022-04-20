@@ -25,9 +25,14 @@ function ingame_state:init()
   --  (the right-most and first position on the line, excluding obstacle incoming preview)
   --  0 is the teacher chalk x (position where we check for obstacle collision)
   self.obstacle_rel_positions_by_level = {{}, {}, {}}
+  -- sequence of time before next obstacle spawn in frames, indexed by line level
+  --  0 is a dummy default, we must randomly generate it on start or we will create
+  --  an impassable wall of obstacles
+  self.time_before_next_obstacle_spawn_by_level = {0, 0, 0}
 end
 
 function ingame_state:on_enter()
+  self:start_challenge()
 end
 
 function ingame_state:on_exit()
@@ -38,13 +43,6 @@ function ingame_state:update()
     self.teacher_arm_level = max(self.teacher_arm_level - 1, 1)
   elseif input:is_just_pressed(button_ids.down) then
     self.teacher_arm_level = min(self.teacher_arm_level + 1, 3)
-  end
-
-  for i=1,3 do
-    -- dummy random, waiting for proper randomization with minimum interval
-    if rnd() < 0.1 then
-      add(self.obstacle_rel_positions_by_level[i], ingame_numerical_data.obstacle_relative_position_max)
-    end
   end
 end
 
@@ -109,9 +107,26 @@ function ingame_state:render()
   visual.sprite_data_t.teacher_pants:render(teacher_position + visual.teacher_pants_attachment_offset)
 end
 
-function ingame_state:get_line_y(line_lua_index)
-  -- convert lua index to 0-index
-  return ingame_numerical_data.obstacle_first_line_y + 6 * (line_lua_index - 1)
+function ingame_state:start_challenge()
+  for i=1,3 do
+    self.time_before_next_obstacle_spawn_by_level[i] = self:generate_rand_next_obstacle_spawn_time(i)
+  end
+end
+
+function ingame_state:generate_rand_next_obstacle_spawn_time(level)
+  -- wait for min interval, then spawn next obstacle somewhere between
+  --  that time and that time + time range
+  -- time range is the number of frames offsets possible, so rnd can be used
+  --  with exclusive upper bound indeed
+  -- NOTE: for now, level is not used, but it will be useful to detect other
+  --  future obstacles incoming and avoid creating an impassable (or very tight)
+  --  wall of obstacles
+  return ingame_numerical_data.obstacle_min_interval + flr(rnd(ingame_numerical_data.obstacle_spawn_time_range))
+end
+
+function ingame_state:get_line_y(level)
+  -- convert level, which is a lua index, to 0-index here
+  return ingame_numerical_data.obstacle_first_line_y + 6 * (level - 1)
 end
 
 return ingame_state
