@@ -125,7 +125,7 @@ elif [[ $config == 'assert' ]]; then
 elif [[ $config == 'profiler' ]]; then
   symbols='profiler,debug_menu,cheat'
   # if profiler is too heavy, use lightweight version
-  symbols='profiler_lightweight,cheat'
+  # symbols='profiler_lightweight,cheat'
   # if this is still too heavy, just use Ctrl+P for the built-in profiler
 elif [[ $config == 'recorder' ]]; then
   symbols='recorder,tostring,log'

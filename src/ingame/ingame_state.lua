@@ -14,8 +14,16 @@ ingame_state.type = ':ingame'
 
 function ingame_state:init()
   -- state vars
+
+  -- true when challenge is running
+  self.is_playing = false
+
+  -- frames elapsed since start_challenge
+  self.frames_since_start = 0
+
   -- teacher arm level: int between 1 and 3
   self.teacher_arm_level = 1
+
   -- obstacle positions by level: sequence of 3 sequences of numbers
   --  each embedded sequence contains an arbitrary number of obstacle
   --  relative positions, between:
@@ -25,6 +33,7 @@ function ingame_state:init()
   --  (the right-most and first position on the line, excluding obstacle incoming preview)
   --  0 is the teacher chalk x (position where we check for obstacle collision)
   self.obstacle_rel_positions_by_level = {{}, {}, {}}
+
   -- sequence of time before next obstacle spawn in frames, indexed by line level
   --  0 is a dummy default, we must randomly generate it on start or we will create
   --  an impassable wall of obstacles
@@ -39,11 +48,48 @@ function ingame_state:on_exit()
 end
 
 function ingame_state:update()
+  if not self.is_playing then
+    return
+  end
+
   if input:is_just_pressed(button_ids.up) then
     self.teacher_arm_level = max(self.teacher_arm_level - 1, 1)
   elseif input:is_just_pressed(button_ids.down) then
     self.teacher_arm_level = min(self.teacher_arm_level + 1, 3)
   end
+
+  for i=1,3 do
+    -- move existing obstacles
+    local obstacle_rel_positions = self.obstacle_rel_positions_by_level[i]
+
+    -- iterate backward for safe deletion during loop
+    for j=#obstacle_rel_positions,1,-1 do
+      obstacle_rel_positions[j] = obstacle_rel_positions[j] - ingame_numerical_data.obstacle_move_speed
+
+      -- check for obstacles that crossed the left limit
+      if obstacle_rel_positions[j] < ingame_numerical_data.obstacle_relative_position_min then
+        -- remove this obstacle
+        deli(obstacle_rel_positions, j)
+      end
+    end
+
+    -- count down time to next obstacle if any, but only every [ingame_numerical_data.obstacle_spawn_check_period] frames
+    local time_before_next_obstacle_spawn = self.time_before_next_obstacle_spawn_by_level[i]
+    if time_before_next_obstacle_spawn > 0 and
+        self.frames_since_start % ingame_numerical_data.obstacle_spawn_check_period == 0 then
+      time_before_next_obstacle_spawn = time_before_next_obstacle_spawn - ingame_numerical_data.obstacle_spawn_check_period
+      self.time_before_next_obstacle_spawn_by_level[i] = time_before_next_obstacle_spawn
+
+      -- make sure to check <= 0 in case ingame_numerical_data.obstacle_spawn_check_period > 1
+      --  and we go below 0 in one step
+      if time_before_next_obstacle_spawn <= 0 then
+        -- count down reached 0, spawn obstacle and prepare timer for next one
+        self:spawn_obstacle_and_prepare_next_one(i)
+      end
+    end
+  end
+
+  self.frames_since_start = self.frames_since_start + 1
 end
 
 function ingame_state:render()
@@ -108,9 +154,15 @@ function ingame_state:render()
 end
 
 function ingame_state:start_challenge()
+  self.is_playing = true
+
   for i=1,3 do
-    self.time_before_next_obstacle_spawn_by_level[i] = self:generate_rand_next_obstacle_spawn_time(i)
+    self:set_rand_next_obstacle_spawn_time(i)
   end
+end
+
+function ingame_state:set_rand_next_obstacle_spawn_time(level)
+    self.time_before_next_obstacle_spawn_by_level[level] = self:generate_rand_next_obstacle_spawn_time(level)
 end
 
 function ingame_state:generate_rand_next_obstacle_spawn_time(level)
@@ -122,6 +174,11 @@ function ingame_state:generate_rand_next_obstacle_spawn_time(level)
   --  future obstacles incoming and avoid creating an impassable (or very tight)
   --  wall of obstacles
   return ingame_numerical_data.obstacle_min_interval + flr(rnd(ingame_numerical_data.obstacle_spawn_time_range))
+end
+
+function ingame_state:spawn_obstacle_and_prepare_next_one(level)
+  add(self.obstacle_rel_positions_by_level[level], ingame_numerical_data.obstacle_relative_position_max)
+  self:set_rand_next_obstacle_spawn_time(level)
 end
 
 function ingame_state:get_line_y(level)
