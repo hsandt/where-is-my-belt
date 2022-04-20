@@ -8,12 +8,12 @@
 --  just after their engine counterpart.
 
 -- Common modules
--- require("...")
+require("engine/core/fun_helper")
 
 --#if minify_level3
 
 -- Modules that just need early require for global name minification
--- require("...")
+require("engine/core/string_split")
 
 --#endif
 

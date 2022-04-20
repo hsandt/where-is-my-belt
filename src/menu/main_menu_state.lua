@@ -1,8 +1,6 @@
 -- base class
 local gamestate = require("engine/application/gamestate")
 
-require("engine/core/fun_helper")
-
 local flow = require("engine/application/flow")
 local text_helper = require("engine/ui/text_helper")
 
