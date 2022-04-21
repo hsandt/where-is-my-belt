@@ -1,4 +1,4 @@
-require("test/bustedhelper_titlemenu")
+require("test/bustedhelper_core")
 local menu_item = require("menu/menu_item")
 
 describe('menu_item', function ()

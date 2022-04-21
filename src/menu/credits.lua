@@ -6,6 +6,7 @@ local text_helper = require("engine/ui/text_helper")
 
 local menu_item = require("menu/menu_item")
 local menu = require("menu/menu_with_sfx")
+local visual = require("resources/visual")
 
 local credits = derived_class(gamestate)
 

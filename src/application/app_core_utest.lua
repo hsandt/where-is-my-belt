@@ -1,4 +1,4 @@
-require("engine/test/bustedhelper")  -- no specific cartridge, so just use the engine version
+require("test/bustedhelper_core")
 local app_core = require("application/app_core")
 
 local flow = require("engine/application/flow")
@@ -80,28 +80,6 @@ describe('app_core', function ()
       app:on_pre_start()
       assert.spy(mouse.set_cursor_sprite_data).was_called(1)
       assert.spy(mouse.set_cursor_sprite_data).was_called_with(match.ref(mouse), match.ref(visual.sprite_data_t.cursor))
-    end)
-
-  end)
-
-  describe('on_post_start', function ()
-
-    setup(function ()
-      stub(_G, "menuitem")
-    end)
-
-    teardown(function ()
-      menuitem:revert()
-    end)
-
-    after_each(function ()
-      menuitem:clear()
-    end)
-
-    it('should create 2 menu items', function ()
-      app:on_post_start()
-      assert.spy(menuitem).was_called(2)
-      -- no reference to lambda passed to menuitem, so don't test was_called_with
     end)
 
   end)

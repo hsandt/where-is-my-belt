@@ -1,4 +1,4 @@
-require("engine/test/bustedhelper")
+require("test/bustedhelper_core")
 local ingame_state = require("ingame/ingame_state")
 
 local gamestate = require("engine/application/gamestate")

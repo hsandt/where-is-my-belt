@@ -1,4 +1,4 @@
-require("test/bustedhelper_titlemenu")
+require("test/bustedhelper_core")
 local menu = require("menu/menu")
 local menu_with_sfx = require("menu/menu_with_sfx")
 

@@ -1,4 +1,4 @@
-require("engine/test/bustedhelper")
+require("test/bustedhelper_core")
 local main_menu_state = require("menu/main_menu_state")
 
 local gamestate = require("engine/application/gamestate")
@@ -73,22 +73,8 @@ describe('main_menu_state', function ()
           menu.draw:clear()
         end)
 
-        it('should print "main menu" centered, in white', function ()
+        it('should not crash', function ()
           mms:render()
-
-          local s = assert.spy(text_helper.print_centered)
-          s.was_called(1)
-          s.was_called_with("main menu", 64, 48, colors.white)
-        end)
-
-        it('should draw menu when present, 4 lines below "main menu"', function ()
-          mms.menu = menu()
-
-          mms:render()
-
-          local s = assert.spy(menu.draw)
-          s.was_called(1)
-          s.was_called_with(match.ref(mms.menu), 48 + 4 * 6)
         end)
 
       end)

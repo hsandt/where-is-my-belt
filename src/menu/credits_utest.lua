@@ -1,4 +1,4 @@
-require("test/bustedhelper_titlemenu")
+require("test/bustedhelper_core")
 local credits = require("menu/credits")
 
 local menu = require("menu/menu")
@@ -35,27 +35,6 @@ describe('credits', function ()
       after_each(function ()
         music:clear()
         menu.show_items:clear()
-      end)
-
-      it('should stop music', function ()
-        c:on_enter()
-
-        assert.spy(music).was_called(1)
-        assert.spy(music).was_called_with(-1)
-      end)
-
-      it('should create text menu with app', function ()
-        c:on_enter()
-
-        assert.are_equal(fake_app, c.menu.app)
-        assert.are_same({alignments.left, colors.white}, {c.menu.alignment, c.menu.text_color})
-      end)
-
-      it('should show text menu', function ()
-        c:on_enter()
-
-        assert.spy(menu.show_items).was_called(1)
-        assert.spy(menu.show_items).was_called_with(match.ref(c.menu), match.ref(c.items))
       end)
 
     end)
