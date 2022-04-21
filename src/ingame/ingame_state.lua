@@ -294,8 +294,7 @@ function ingame_state:render()
   -- frames / 60 -> seconds, * 100 -> hundredths of second
   -- so multiply elapsed frames by 100 / 60 = 5 / 3
   local timer_second_hundredths = flr(self.frames_since_start_play * 5 / 3)
-  -- when clean, use format_number(..., 2) instead of tostr to fix the jumping decimal issue
-  text_helper.print_aligned(tostr(timer_second_hundredths / 100), 126, 1, alignments.right, colors.white, colors.black)
+  text_helper.print_aligned(format_number(timer_second_hundredths / 100, 2), 126, 1, alignments.right, colors.white, colors.black)
 end
 
 -- helpers

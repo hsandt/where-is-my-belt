@@ -9,6 +9,8 @@
 
 -- Common modules
 require("engine/core/fun_helper")
+require("engine/core/math_round")  -- used by string_format_number
+require("engine/core/string_format_number")
 
 --#if minify_level3
 
