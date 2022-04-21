@@ -43,7 +43,7 @@ local icon_transparent_color = 14
 
 cd(export_folder)
 
-  local entry_cartridge = title.."_main.p8"
+  local entry_cartridge = title.."_core.p8"
 
   -- all main cartridges, including entry cartridge
   local main_cartridges_list = {entry_cartridge}

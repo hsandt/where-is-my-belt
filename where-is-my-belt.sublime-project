@@ -189,30 +189,30 @@
 			"name": "Game: build and run full game",
 			"working_dir": "${project_path}",
 			"shell": true,
-			"cmd": ["./build_and_install_all_cartridges.sh debug && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh titlemenu debug)"],
+			"cmd": ["./build_and_install_all_cartridges.sh debug && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core debug)"],
 			"file_regex": "(.*\\.sh)(?:\\: line )([\\d]+)(?:\\:)([\\d]+)? (.*)",
 			"syntax": "Packages/Python/Python.sublime-syntax",
 			"variants":
 			[
 				{
 					"name": "debug",
-					"cmd": ["./build_and_install_all_cartridges.sh debug && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh titlemenu debug)"]
+					"cmd": ["./build_and_install_all_cartridges.sh debug && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core debug)"]
 				},
 				{
 					"name": "cheat",
-					"cmd": ["./build_and_install_all_cartridges.sh cheat && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh titlemenu cheat)"]
+					"cmd": ["./build_and_install_all_cartridges.sh cheat && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core cheat)"]
 				},
 				{
 					"name": "assert",
-					"cmd": ["./build_and_install_all_cartridges.sh assert && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh titlemenu assert)"]
+					"cmd": ["./build_and_install_all_cartridges.sh assert && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core assert)"]
 				},
 				{
 					"name": "tuner",
-					"cmd": ["./build_and_install_all_cartridges.sh tuner && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh titlemenu tuner)"]
+					"cmd": ["./build_and_install_all_cartridges.sh tuner && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core tuner)"]
 				},
 				{
 					"name": "release",
-					"cmd": ["./build_and_install_all_cartridges.sh release && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh titlemenu release)"]
+					"cmd": ["./build_and_install_all_cartridges.sh release && (./pico-boots/scripts/reload.sh || ./run_cartridge.sh core release)"]
 				},
 			]
 		},
@@ -367,10 +367,10 @@
 			]
 		},
 		{
-			"name": "Game: export and patch cartridge release",
+			"name": "Game: export cartridge release",
 			"working_dir": "${project_path}",
 			"shell": true,
-			"cmd": ["./export_and_patch_cartridge_release.sh"],
+			"cmd": ["./export_cartridge_release.sh"],
 		},
 		{
 			"name": "Game: upload cartridge release",
@@ -379,10 +379,10 @@
 			"cmd": ["./upload_cartridge_release.sh"],
 		},
 		{
-			"name": "Game: build full game release, export and patch it, upload it",
+			"name": "Game: build full game release, export it, upload it",
 			"working_dir": "${project_path}",
 			"shell": true,
-			"cmd": ["./build_and_install_all_cartridges.sh release && ./export_and_patch_cartridge_release.sh && ./upload_cartridge_release.sh"],
+			"cmd": ["./build_and_install_all_cartridges.sh release && ./export_cartridge_release.sh && ./upload_cartridge_release.sh"],
 		},
 		{
 			"name": "Game: test",
@@ -522,7 +522,7 @@
 			"working_dir": "${project_path}",
 			"shell": true,
 			// note that luacov report is generated in the working directory, so the second test report will overwrite the previous one
-			"cmd": ["ITEST_CARTRIDGE_SUFFIX=ignore ./test.sh && echo '' && ITEST_CARTRIDGE_SUFFIX=titlemenu ./test.sh -f headless_itests && echo '' && ITEST_CARTRIDGE_SUFFIX=core ./test.sh -f headless_itests && echo '' && ITEST_CARTRIDGE_SUFFIX=stage_clear ./test.sh -f headless_itests && echo '' && ITEST_CARTRIDGE_SUFFIX=stage_intro ./test.sh -f headless_itests && echo '' && pico-boots/test.sh"],
+			"cmd": ["ITEST_CARTRIDGE_SUFFIX=ignore ./test.sh && echo '' && ITEST_CARTRIDGE_SUFFIX=core ./test.sh -f headless_itests && echo '' && ITEST_CARTRIDGE_SUFFIX=core ./test.sh -f headless_itests && echo '' && ITEST_CARTRIDGE_SUFFIX=stage_clear ./test.sh -f headless_itests && echo '' && ITEST_CARTRIDGE_SUFFIX=stage_intro ./test.sh -f headless_itests && echo '' && pico-boots/test.sh"],
 			// known limitation: last \n won't be detected in build output, so cannot display multi-line errors
 			"file_regex": "((?:pico-boots/src|src)\\/[-\\w\\/]+\\.lua)(?:\\:| @ )([\\d]+)(?:\\:)?([\\d]+)?\\n?(.*)",
 			"syntax": "Packages/Python/Python.sublime-syntax",
