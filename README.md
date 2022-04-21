@@ -1,12 +1,12 @@
 # Where is my Belt?
 
-itch.io page: TBD
+[itch.io page](https://komehara.itch.io/where-is-my-belt)
 
-TODO: insert game capture GIF here
+![Gameplay demo GIF: teacher pull their pants while moving their chalk on the whiteboard](doc/where-is-my-belt_v0.2_gameplay_demo_6s.png?raw=true)
 
 **Where is my Belt?** is a twitch game made for [Ludum Dare 50](https://ldjam.com/events/ludum-dare/50/) on the theme "Delay the inevitable" in the Extra category.
 
-In this game, you play as a teacher who forgot their belt and must run a class while keeping their pants up. But you are only delaying the inevitable...
+In this game, you play as a teacher who forgot their belt and must run a class while keeping their pants up. But beware: the pupils are looking at you...
 
 ## Screenshots
 
@@ -19,7 +19,6 @@ You can play with keyboard or gamepad with those inputs:
 | Keyboard                 | Gamepad                | Action                                           |
 |--------------------------|------------------------|--------------------------------------------------|
 | Up/down arrows           | D-pad up/down          | Move chalk up/down to dodge obstacles            |
-| Left/right arrows        | D-pad left/right       | Answer to pupils' questions                      |
 | Z/C/N                    | Face button up/down    | PICO-8 "O": Confirm (menu), pull pants (in-game) |
 | X/V/M                    | Face button left/right | PICO-8 "X": Cancel (menu)                        |
 | Enter                    | Start                  | Open PICO-8 pause menu                           |
@@ -30,7 +29,7 @@ If you gamepad mapping is not correct when playing with the native PC binaries, 
 
 ## Development notes
 
-The Extra category extends the deadline by 16 days, but I started working after the standard LD 50 was over, so in fact, I only spent 6 days on this project.
+The Extra category extends the deadline by 16 days, but I started working quite a time after the standard LD 50 was over, so in fact, I only spent 6 days (26h) on this project.
 
 ## Compatibility
 

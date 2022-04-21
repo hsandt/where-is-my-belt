@@ -15,7 +15,7 @@ __lua__
 local title = "where-is-my-belt"
 -- #version
 -- PICO-8 cannot read data/version.txt, so exceptionally set the version manually here
-local version = "0.1"
+local version = "0.2"
 -- #cartridge
 local entry_cartridge_name = "core"
 local template_file = "where-is-my-belt_template"  -- no .html extension

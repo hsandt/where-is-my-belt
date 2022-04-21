@@ -77,6 +77,9 @@ function ingame_state:setup_challenge_state()
   -- it can be fractional to accomodate progressive fall
   self.teacher_pants_falling_progress = 0
 
+  -- current pants falling speed, increases on each pull pants action
+  self.teacher_pants_falling_speed = ingame_numerical_data.pants_base_fall_speed
+
   -- time left after game start or pull before pants start falling again
   self.time_before_pants_fall = ingame_numerical_data.delay_before_pants_fall
 
@@ -87,6 +90,9 @@ function ingame_state:setup_challenge_state()
 
   -- after suspicion increased, this is set to prevent immediate cooldown
   self.time_before_suspicion_cooldown = 0
+
+  self.obstacle_min_interval = ingame_numerical_data.obstacle_base_min_interval
+  self.obstacle_spawn_time_range = ingame_numerical_data.obstacle_base_spawn_time_range
 
   -- obstacle positions by level: sequence of 3 sequences of numbers
   --  each embedded sequence contains an arbitrary number of obstacle
@@ -123,48 +129,9 @@ function ingame_state:update()
       self.teacher_arm_level = min(self.teacher_arm_level + 1, 3)
     end
 
-    for i=1,3 do
-      -- move existing obstacles
-      local obstacle_rel_positions = self.obstacle_rel_positions_by_level[i]
-
-      -- iterate backward for safe deletion during loop
-      for j=#obstacle_rel_positions,1,-1 do
-        obstacle_rel_positions[j] = obstacle_rel_positions[j] - ingame_numerical_data.obstacle_move_speed
-
-        -- check for obstacles that crossed the left limit
-        if obstacle_rel_positions[j] < ingame_numerical_data.obstacle_relative_position_min then
-          -- remove this obstacle
-          deli(obstacle_rel_positions, j)
-        else
-          -- obstacle in somewhere in the middle, check for collision with teacher arm chalk
-          -- check vertical level and horizontal progress
-          -- note that visually, fractional positions are floored, so use floor too for collision check
-          if self.teacher_arm_level == i and flr(obstacle_rel_positions[j]) == 0 then
-            -- detected collision!
-
-            -- remove the obstacle so we're sure we won't hit it again next frame
-            deli(obstacle_rel_positions, j)
-
-            self:on_hit_obstacle()
-          end
-        end
-      end
-
-      -- count down time to next obstacle if any, but only every [ingame_numerical_data.obstacle_spawn_check_period] frames
-      local time_before_next_obstacle_spawn = self.time_before_next_obstacle_spawn_by_level[i]
-      if time_before_next_obstacle_spawn > 0 and
-          self.frames_since_start_play % ingame_numerical_data.obstacle_spawn_check_period == 0 then
-        time_before_next_obstacle_spawn = time_before_next_obstacle_spawn - ingame_numerical_data.obstacle_spawn_check_period
-        self.time_before_next_obstacle_spawn_by_level[i] = time_before_next_obstacle_spawn
-
-        -- make sure to check <= 0 in case ingame_numerical_data.obstacle_spawn_check_period > 1
-        --  and we go below 0 in one step
-        if time_before_next_obstacle_spawn <= 0 then
-          -- count down reached 0, spawn obstacle and prepare timer for next one
-          self:spawn_obstacle_and_prepare_next_one(i)
-        end
-      end
-    end
+    -- we update obstacles after player action just to give them a last chance
+    --  to switch lane and avoid an obstacle this frame
+    self:update_obstacles()
 
     self:check_failure()
 
@@ -296,8 +263,8 @@ function ingame_state:render()
     if self.failure_reason == failure_reason.pants then
       text_helper.print_aligned("you lost the pants!", screen_width / 2, 91, alignments.center, colors.white, colors.black)
     elseif self.failure_reason == failure_reason.suspicion then
-      text_helper.print_aligned("your pupils saw you", screen_width / 2, 91, alignments.center, colors.white, colors.black)
-      text_helper.print_aligned("pull your pants too often!", screen_width / 2, 99, alignments.center, colors.white, colors.black)
+      text_helper.print_aligned("your pupils reached ", screen_width / 2, 91, alignments.center, colors.white, colors.black)
+      text_helper.print_aligned("max suspicion!", screen_width / 2, 99, alignments.center, colors.white, colors.black)
     end
     -- until either p8tool listrawlua is fixed, or I support post-build replace glyph '##o',
     --  I'll have to print standard characters, avoiding input glyphs
@@ -333,7 +300,7 @@ function ingame_state:generate_rand_next_obstacle_spawn_time(level)
   -- NOTE: for now, level is not used, but it will be useful to detect other
   --  future obstacles incoming and avoid creating an impassable (or very tight)
   --  wall of obstacles
-  return ingame_numerical_data.obstacle_min_interval + flr(rnd(ingame_numerical_data.obstacle_spawn_time_range))
+  return self.obstacle_min_interval + flr(rnd(self.obstacle_spawn_time_range))
 end
 
 function ingame_state:spawn_obstacle_and_prepare_next_one(level)
@@ -342,6 +309,59 @@ function ingame_state:spawn_obstacle_and_prepare_next_one(level)
 end
 
 -- game actions
+
+function ingame_state:update_obstacles()
+  -- gradually reduce obstacle min interval and spawn time range to increase difficulty
+  self.obstacle_min_interval = max(self.obstacle_min_interval - ingame_numerical_data.obstacle_min_interval_decrease_per_second / 60,
+    ingame_numerical_data.obstacle_min_min_interval)
+
+  self.obstacle_spawn_time_range = max(self.obstacle_spawn_time_range - ingame_numerical_data.obstacle_spawn_time_range_decrease_per_second / 60,
+    ingame_numerical_data.obstacle_min_spawn_time_range)
+
+  for i=1,3 do
+    -- move existing obstacles
+    local obstacle_rel_positions = self.obstacle_rel_positions_by_level[i]
+
+    -- iterate backward for safe deletion during loop
+    for j=#obstacle_rel_positions,1,-1 do
+      obstacle_rel_positions[j] = obstacle_rel_positions[j] - ingame_numerical_data.obstacle_move_speed
+
+      -- check for obstacles that crossed the left limit
+      if obstacle_rel_positions[j] < ingame_numerical_data.obstacle_relative_position_min then
+        -- remove this obstacle
+        deli(obstacle_rel_positions, j)
+      else
+        -- obstacle in somewhere in the middle, check for collision with teacher arm chalk
+        -- check vertical level and horizontal progress
+        -- note that visually, fractional positions are floored, so use floor too for collision check
+        if self.teacher_arm_level == i and flr(obstacle_rel_positions[j]) == 0 then
+          -- detected collision!
+
+          -- remove the obstacle so we're sure we won't hit it again next frame
+          deli(obstacle_rel_positions, j)
+
+          self:on_hit_obstacle()
+        end
+      end
+    end
+
+    -- count down time to next obstacle if any, but only every [ingame_numerical_data.obstacle_spawn_check_period] frames
+    local time_before_next_obstacle_spawn = self.time_before_next_obstacle_spawn_by_level[i]
+    if time_before_next_obstacle_spawn > 0 and
+        self.frames_since_start_play % ingame_numerical_data.obstacle_spawn_check_period == 0 then
+      time_before_next_obstacle_spawn = time_before_next_obstacle_spawn - ingame_numerical_data.obstacle_spawn_check_period
+      self.time_before_next_obstacle_spawn_by_level[i] = time_before_next_obstacle_spawn
+
+      -- make sure to check <= 0 in case ingame_numerical_data.obstacle_spawn_check_period > 1
+      --  and we go below 0 in one step
+      if time_before_next_obstacle_spawn <= 0 then
+        -- count down reached 0, spawn obstacle and prepare timer for next one
+        self:spawn_obstacle_and_prepare_next_one(i)
+      end
+    end
+  end
+end
+
 
 function ingame_state:on_hit_obstacle()
   -- this increases suspicion of pupils
@@ -352,13 +372,14 @@ function ingame_state:pull_pants()
   -- reset pants falling
   self.teacher_pants_falling_progress = 0
   self.time_before_pants_fall = ingame_numerical_data.delay_before_pants_fall
+  self.teacher_pants_falling_speed = min(self.teacher_pants_falling_speed + ingame_numerical_data.pants_fall_speed_increase_per_pull,
+    ingame_numerical_data.pants_max_fall_speed)
 
   -- this increases suspicion of pupils
   self:increase_suspicion(ingame_numerical_data.suspicion_increase_on_pull_pants)
 end
 
 function ingame_state:update_pants()
-
   -- countdown time before pants can fall, if any
   -- (done before actually checking pants fall)
   if self.time_before_pants_fall > 0 then
@@ -370,7 +391,7 @@ function ingame_state:update_pants()
   --  this frame, it will be at progress 0 indeed at the end of the frame
   if self.time_before_pants_fall <= 0 then
     -- increment pants falling step (clamped)
-    local new_falling_progress = self.teacher_pants_falling_progress + ingame_numerical_data.pants_base_fall_speed / 60
+    local new_falling_progress = self.teacher_pants_falling_progress + self.teacher_pants_falling_speed / 60
     self.teacher_pants_falling_progress = min(new_falling_progress, 7)
   end
 end
