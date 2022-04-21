@@ -30,7 +30,7 @@ If you gamepad mapping is not correct when playing with the native PC binaries, 
 
 ## Development notes
 
-The Extra category extends the deadline by 16 days, but I started working after the standard LD 50 was over, so in fact, I only spent [N] days on this project.
+The Extra category extends the deadline by 16 days, but I started working after the standard LD 50 was over, so in fact, I only spent 6 days on this project.
 
 ## Compatibility
 
