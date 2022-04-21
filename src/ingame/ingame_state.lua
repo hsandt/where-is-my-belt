@@ -91,6 +91,9 @@ function ingame_state:setup_challenge_state()
   -- after suspicion increased, this is set to prevent immediate cooldown
   self.time_before_suspicion_cooldown = 0
 
+  self.obstacle_min_interval = ingame_numerical_data.obstacle_base_min_interval
+  self.obstacle_spawn_time_range = ingame_numerical_data.obstacle_base_spawn_time_range
+
   -- obstacle positions by level: sequence of 3 sequences of numbers
   --  each embedded sequence contains an arbitrary number of obstacle
   --  relative positions, between:
@@ -297,7 +300,7 @@ function ingame_state:generate_rand_next_obstacle_spawn_time(level)
   -- NOTE: for now, level is not used, but it will be useful to detect other
   --  future obstacles incoming and avoid creating an impassable (or very tight)
   --  wall of obstacles
-  return ingame_numerical_data.obstacle_min_interval + flr(rnd(ingame_numerical_data.obstacle_spawn_time_range))
+  return self.obstacle_min_interval + flr(rnd(self.obstacle_spawn_time_range))
 end
 
 function ingame_state:spawn_obstacle_and_prepare_next_one(level)
@@ -308,6 +311,13 @@ end
 -- game actions
 
 function ingame_state:update_obstacles()
+  -- gradually reduce obstacle min interval and spawn time range to increase difficulty
+  self.obstacle_min_interval = max(self.obstacle_min_interval - ingame_numerical_data.obstacle_min_interval_decrease_per_second / 60,
+    ingame_numerical_data.obstacle_min_min_interval)
+
+  self.obstacle_spawn_time_range = max(self.obstacle_spawn_time_range - ingame_numerical_data.obstacle_spawn_time_range_decrease_per_second / 60,
+    ingame_numerical_data.obstacle_min_spawn_time_range)
+
   for i=1,3 do
     -- move existing obstacles
     local obstacle_rel_positions = self.obstacle_rel_positions_by_level[i]
