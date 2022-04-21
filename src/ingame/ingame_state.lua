@@ -355,6 +355,8 @@ function ingame_state:pull_pants()
   -- reset pants falling
   self.teacher_pants_falling_progress = 0
   self.time_before_pants_fall = ingame_numerical_data.delay_before_pants_fall
+  self.teacher_pants_falling_speed = min(self.teacher_pants_falling_speed + ingame_numerical_data.pants_fall_speed_increase_per_pull,
+    ingame_numerical_data.pants_max_fall_speed)
 
   -- this increases suspicion of pupils
   self:increase_suspicion(ingame_numerical_data.suspicion_increase_on_pull_pants)
@@ -372,11 +374,6 @@ function ingame_state:update_pants()
   -- note that this is done before the possible pull pants action, so if player is pulling pants
   --  this frame, it will be at progress 0 indeed at the end of the frame
   if self.time_before_pants_fall <= 0 then
-    -- note that we only apply acceleration only when pants can fall, up to a limit
-    --  however, we keep last speed even after a pull
-    self.teacher_pants_falling_speed = min(self.teacher_pants_falling_speed + ingame_numerical_data.pants_fall_accel / 60,
-        ingame_numerical_data.pants_max_fall_speed)
-
     -- increment pants falling step (clamped)
     local new_falling_progress = self.teacher_pants_falling_progress + self.teacher_pants_falling_speed / 60
     self.teacher_pants_falling_progress = min(new_falling_progress, 7)

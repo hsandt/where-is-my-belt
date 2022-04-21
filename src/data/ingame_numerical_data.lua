@@ -19,7 +19,7 @@ local ingame_numerical_data = {
   -- set to 1 for update every frame (ignore jittering)
   obstacle_spawn_check_period = 2, -- in frames
   pants_base_fall_speed = 0.5,  -- per second
-  pants_fall_accel = 0.1,       -- per second
+  pants_fall_speed_increase_per_pull = 0.25,
   pants_max_fall_speed = 2,     -- per second
   delay_before_pants_fall = 60,  -- in frames
   suspicion_increase_on_pull_pants = 3,
