@@ -43,7 +43,7 @@ local icon_tile_size = 1
 -- set id of the sprite at the top-left of the icon in the spritesheet here
 local icon_top_left_sprite_id = 10  -- boxer shorts
 -- set transparent color number here (see color.lua for mapping)
-local icon_transparent_color = 14  -- pink
+local icon_transparent_color = 11  -- green
 
 -- Script
 
