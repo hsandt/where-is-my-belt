@@ -59,8 +59,12 @@ cd(export_folder)
   -- data do not contain any code, so no need to adapt reload ".p8" -> ".p8.png"
   -- so just save them directly as png
   for cartridge_name in all(data_cartridges_list) do
-    load(cartridge_name)
-    save(rel_png_folder.."/"..cartridge_name..".png")
+    local success = load(cartridge_name)
+    if success then
+      save(rel_png_folder.."/"..cartridge_name..".png")
+    else
+      printh("ERROR: loading data cartridge '"..cartridge_name.."' failed, could not save as .png")
+    end
   end
 
   -- main cartridges need to be *adapted for PNG* for reload, so load those adapted versions
@@ -70,9 +74,13 @@ cd(export_folder)
   cd("p8_for_png")
 
     for cartridge_name in all(main_cartridges_list) do
-      load(cartridge_name)
-      -- save as png (make sure to go one level up first since we are one level down)
-      save("../"..rel_png_folder.."/"..cartridge_name..".png")
+      local success = load(cartridge_name)
+      if success then
+        -- save as png (make sure to go one level up first since we are one level down)
+        save("../"..rel_png_folder.."/"..cartridge_name..".png")
+      else
+        printh("ERROR: loading main cartridge '"..cartridge_name.."' failed, could not save as .png")
+      end
     end
 
   cd("..")
@@ -84,37 +92,42 @@ cd(export_folder)
 
   -- load the original (not adapted for PNG) entry cartridge (titlemenu)
   -- this will serve as main entry point for the whole game
-  load(entry_cartridge)
+  local success = load(entry_cartridge)
+  if success then
 
-  -- concatenate cartridge names with space separator with a very simplified version
-  --  of string.lua > joinstr_table that doesn't mind about adding an initial space
-  local additional_cartridges_string = ""
-  for cartridge_name in all(additional_main_cartridges_list) do
-    additional_cartridges_string = additional_cartridges_string.." "..cartridge_name
+    -- concatenate cartridge names with space separator with a very simplified version
+    --  of string.lua > joinstr_table that doesn't mind about adding an initial space
+    local additional_cartridges_string = ""
+    for cartridge_name in all(additional_main_cartridges_list) do
+      additional_cartridges_string = additional_cartridges_string.." "..cartridge_name
+    end
+    for cartridge_name in all(data_cartridges_list) do
+      additional_cartridges_string = additional_cartridges_string.." "..cartridge_name
+    end
+
+
+    -- BIN
+
+    -- exports are done via EXPORT, and can use a custom icon stored in builtin_data_{entry_cartridge}.p8,
+    --  instead of the .p8.png label, based on game-specific parameters defined at the top
+    export(game_basename..".bin "..additional_cartridges_string.." -i "..icon_top_left_sprite_id.." -s "..
+      icon_tile_size.." -c "..icon_transparent_color)
+    printh("Exported binaries in carts/"..export_folder.."/"..game_basename..".bin")
+
+
+    -- WEB
+
+    mkdir(game_basename.."_web")
+    -- Do not cd into game_basename.."_web" because we want the additional cartridges to be accessible
+    --  in current path. Instead, export directly into the _web folder
+    -- Use custom template. It is located in plates/{template_file}.html and copied into PICO-8 config dir plates
+    --  in export_and_patch_cartridge_release.sh
+    export(game_basename.."_web/"..game_basename..".html "..additional_cartridges_string.." -i "..
+      icon_top_left_sprite_id.." -s "..icon_tile_size.." -c "..icon_transparent_color.." -p "..template_file)
+    printh("Exported HTML in carts/"..export_folder.."/"..game_basename..".html")
+
+  else
+    printh("ERROR: loading entry cartridge '"..entry_cartridge.."' failed, could not export .bin nor web")
   end
-  for cartridge_name in all(data_cartridges_list) do
-    additional_cartridges_string = additional_cartridges_string.." "..cartridge_name
-  end
-
-
-  -- BIN
-
-  -- exports are done via EXPORT, and can use a custom icon stored in builtin_data_{entry_cartridge}.p8,
-  --  instead of the .p8.png label, based on game-specific parameters defined at the top
-  export(game_basename..".bin "..additional_cartridges_string.." -i "..icon_top_left_sprite_id.." -s "..
-    icon_tile_size.." -c "..icon_transparent_color)
-  printh("Exported binaries in carts/"..export_folder.."/"..game_basename..".bin")
-
-
-  -- WEB
-
-  mkdir(game_basename.."_web")
-  -- Do not cd into game_basename.."_web" because we want the additional cartridges to be accessible
-  --  in current path. Instead, export directly into the _web folder
-  -- Use custom template. It is located in plates/{template_file}.html and copied into PICO-8 config dir plates
-  --  in export_and_patch_cartridge_release.sh
-  export(game_basename.."_web/"..game_basename..".html "..additional_cartridges_string.." -i "..
-    icon_top_left_sprite_id.." -s "..icon_tile_size.." -c "..icon_transparent_color.." -p "..template_file)
-  printh("Exported HTML in carts/"..export_folder.."/"..game_basename..".html")
 
 cd("..")

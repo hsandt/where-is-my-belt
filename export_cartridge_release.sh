@@ -110,6 +110,10 @@ rm -rf "${png_folder}/"*
 # making this mandatory, but this was fixed in 0.2.2. We still decided to keep the line to be clean.
 rm -rf "${bin_folder}/"*
 
+# Cleanup web folder as we want to check that this folder is not empty after export
+# to confirm success of web export
+rm -rf "${web_folder}/"*
+
 # p8 cartridges can be distributed as such, so just copy them to the folder to zip later
 mkdir -p "$p8_folder"
 cp "${export_folder}/"*.p8 "$p8_folder"
@@ -149,6 +153,12 @@ fi
 if [[ ! -d "$bin_folder" || ! $(ls -A "$bin_folder") ]]; then
   echo ""
   echo "Exporting game release binaries via PICO-8 failed, STOP. Check that each cartridge compressed size <= 100%."
+  exit 1
+fi
+
+if [[ ! -d "$web_folder" || ! $(ls -A "$web_folder") ]]; then
+  echo ""
+  echo "Exporting game for web via PICO-8 failed, STOP. Check that each cartridge compressed size <= 100% and that the label has been captured."
   exit 1
 fi
 
