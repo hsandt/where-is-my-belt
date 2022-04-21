@@ -1,8 +1,8 @@
 # Where is my Belt?
 
-itch.io page: TBD
+[itch.io page](https://komehara.itch.io/where-is-my-belt)
 
-TODO: insert game capture GIF here
+![Gameplay demo GIF: teacher pull their pants while moving their chalk on the whiteboard](doc/where-is-my-belt_v0.2_gameplay_demo_6s.png?raw=true)
 
 **Where is my Belt?** is a twitch game made for [Ludum Dare 50](https://ldjam.com/events/ludum-dare/50/) on the theme "Delay the inevitable" in the Extra category.
 
