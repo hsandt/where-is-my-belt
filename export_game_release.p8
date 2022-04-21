@@ -9,6 +9,8 @@ __lua__
 -- Note that it will not warn if cartridge is not found.
 -- Paths are relative to PICO-8 carts directory.
 
+-- Configuration
+
 -- #title
 local title = "where-is-my-belt"
 -- #version
@@ -35,14 +37,15 @@ local data_cartridges_list = {
 }
 
 -- #icon
--- custom icon is stored in builtin_data_{entry_cartridge}.p8:
---  as a 16x16 square                      => -s 2 tiles wide
---  with top-left cell at sprite 46 (run1) => -i 46
---  on pink (color 14) background          => -c 14
--- and most importantly we pass additional logic and data files as additional cartridges
-local icon_tile_size = 2
-local icon_top_left_sprite_id = 46
-local icon_transparent_color = 14
+-- custom icon is stored in builtin_data_{entry_cartridge_name}.p8:
+-- set icon tile size here (multiply by 8 to get icon square size)
+local icon_tile_size = 1
+-- set id of the sprite at the top-left of the icon in the spritesheet here
+local icon_top_left_sprite_id = 10  -- boxer shorts
+-- set transparent color number here (see color.lua for mapping)
+local icon_transparent_color = 14  -- pink
+
+-- Script
 
 cd(export_folder)
 
@@ -92,6 +95,12 @@ cd(export_folder)
 
 
   -- BIN & WEB
+
+  -- Note that pico8 now supports direct export from script with `pico8 -export`
+  --  so for more control from bash/Python script (including getting title/version
+  --  directly from data/*.txt files), it may be good to move bin and web export
+  --  to export_cartridge_release.sh. There may be some redundant code with png export
+  --  though.
 
   -- load the original (not adapted for PNG) entry cartridge (titlemenu)
   -- this will serve as main entry point for the whole game
