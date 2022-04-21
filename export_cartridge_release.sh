@@ -129,9 +129,9 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-# Copy custom template to PICO-8 config plates folder as "${cartridge_basename}_template.html"
+# Copy custom template to PICO-8 config plates folder as "${cartridge_stem}_template.html"
 # (just to avoid conflicts with other games)
-cp "${picoboots_plates_path}/custom_template.html" "${config_plates_dirpath}/${cartridge_basename}_template.html"
+cp "${picoboots_plates_path}/custom_template.html" "${config_plates_dirpath}/${cartridge_stem}_template.html"
 
 # Export via PICO-8 editor: PNG cartridges, binaries, HTML
 pico8 -x "$game_scripts_path/export_game_release.p8"
