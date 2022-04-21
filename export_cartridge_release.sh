@@ -167,8 +167,7 @@ if [[ "$patch" == true ]]; then
 fi
 
 # Rename HTML file to index.html for direct play-in-browser
-html_filepath="${web_folder}/${cartridge_basename}.html"
-mv "$html_filepath" "${web_folder}/index.html"
+mv "${web_folder}/${cartridge_basename}.html" "${web_folder}/index.html"
 
 if [[ "$patch" == true ]]; then
   # Patch the HTML export in-place with 4x_token, fast_reload
