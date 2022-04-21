@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Export and patch cartridge releases, then update existing archives with patched executables
+# Export cartridge releases, optionally patch them, then update existing archives with exported executables
 # Also apply small tweaks to make release work completely:
 # - rename HTML file to index.html to make it playable directly in browser (esp. on itch.io)
 # - add '.png' to every occurrence of '.p8' in copy of game source before exporting to PNG
@@ -22,6 +22,61 @@ cartridge_stem=`cat "$data_path/title_cartridge.txt"`
 version=`cat "$data_path/version.txt"`
 export_folder="$carts_dirpath/${cartridge_stem}/v${version}_release"
 cartridge_basename="${cartridge_stem}_v${version}_release"
+
+help() {
+  echo "Export cartridge releases for various platforms, updating any existing archive.
+You can pass optional arguments to patch the produced executables and web files."
+  usage
+}
+
+usage() {
+  echo "Usage: export_cartridge_release.sh [OPTIONS]
+
+ARGUMENTS
+  -p, --patch               Pass this option to patch executables and web files to enable
+                            '4x_token' and 'fast_reload'.
+                              4x_token: multiplies PICO-8 runtime cartridge token limit by 4,
+                                effectively removing token limitation
+                              fast_reload: reload other cartridge content without being delayed
+                                by the rotating cart animation
+
+  -h, --help                Show this help message
+"
+}
+
+# Default parameters
+patch=false
+
+# Read arguments
+# https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -p | --patch )
+      patch=true
+      shift # past argument
+      ;;
+    -h | --help )
+      help
+      exit 0
+      ;;
+    -* )    # unknown option
+      echo "Unknown option: '$1'"
+      usage
+      exit 1
+      ;;
+    * )     # store positional argument for later
+      positional_args+=("$1")
+      shift # past argument
+      ;;
+  esac
+done
+
+if ! [[ ${#positional_args[@]} -eq 0 ]]; then
+  echo "Wrong number of positional arguments: found ${#positional_args[@]}, expected 0."
+  echo "Passed positional arguments: ${positional_args[@]}"
+  usage
+  exit 1
+fi
 
 # Verify that the export folder is present. This does not guarantee we built and installed all cartridges
 # to carts correctly, but if not present don't even try to export.
@@ -97,31 +152,36 @@ if [[ ! -d "$bin_folder" || ! $(ls -A "$bin_folder") ]]; then
   exit 1
 fi
 
-# Patch the runtime binaries in-place with 4x_token, fast_reload, fast_load (experimental) if available
-patch_bin_cmd="\"$picoboots_scripts_path/patch_pico8_runtime.sh\" --inplace \"$pico8_version\" \"$bin_folder\" \"$cartridge_basename\""
-echo "> $patch_bin_cmd"
-bash -c "$patch_bin_cmd"
+if [[ "$patch" == true ]]; then
+  echo "PATCH"
+  # Patch the runtime binaries in-place with 4x_token and fast_reload if available
+  patch_bin_cmd="\"$picoboots_scripts_path/patch_pico8_runtime.sh\" --inplace \"$pico8_version\" \"$bin_folder\" \"$cartridge_basename\""
+  echo "> $patch_bin_cmd"
+  bash -c "$patch_bin_cmd"
 
-if [[ $? -ne 0 ]]; then
-  echo ""
-  echo "Patch bin step failed, STOP."
-  exit 1
+  if [[ $? -ne 0 ]]; then
+    echo ""
+    echo "Patch bin step failed, STOP."
+    exit 1
+  fi
 fi
 
 # Rename HTML file to index.html for direct play-in-browser
 html_filepath="${web_folder}/${cartridge_basename}.html"
 mv "$html_filepath" "${web_folder}/index.html"
 
-# Patch the HTML export in-place with 4x_token, fast_reload
-js_filepath="${web_folder}/${cartridge_basename}.js"
-patch_js_cmd="python3.6 \"$picoboots_scripts_path/patch_pico8_js.py\" \"$js_filepath\" \"$js_filepath\""
-echo "> $patch_js_cmd"
-bash -c "$patch_js_cmd"
+if [[ "$patch" == true ]]; then
+  # Patch the HTML export in-place with 4x_token, fast_reload
+  js_filepath="${web_folder}/${cartridge_basename}.js"
+  patch_js_cmd="python3.6 \"$picoboots_scripts_path/patch_pico8_js.py\" \"$js_filepath\" \"$js_filepath\""
+  echo "> $patch_js_cmd"
+  bash -c "$patch_js_cmd"
 
-if [[ $? -ne 0 ]]; then
-  echo ""
-  echo "Patch JS step failed, STOP."
-  exit 1
+  if [[ $? -ne 0 ]]; then
+    echo ""
+    echo "Patch JS step failed, STOP."
+    exit 1
+  fi
 fi
 
 # Archiving
