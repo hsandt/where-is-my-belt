@@ -1,6 +1,6 @@
 local gamestate = require("engine/application/gamestate")
 
--- local flow = require("engine/application/flow")
+local flow = require("engine/application/flow")
 local input = require("engine/input/input")
 local text_helper = require("engine/ui/text_helper")
 
@@ -28,10 +28,21 @@ function ingame_state:init()
 end
 
 function ingame_state:on_enter()
+  menuitem(4, "retry", function()
+    self:start_challenge()
+  end)
+
+  menuitem(5, "back to title", function()
+    flow:query_gamestate_type(":main_menu")
+  end)
+
   self:start_challenge()
 end
 
 function ingame_state:on_exit()
+  -- clear ingame-specific menu items
+  menuitem(4)
+  menuitem(5)
 end
 
 function ingame_state:start_challenge()

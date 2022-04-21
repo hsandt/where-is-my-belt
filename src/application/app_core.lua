@@ -62,17 +62,6 @@ function app_core:on_pre_start() -- override (optional)
 end
 
 function app_core:on_post_start() -- override (optional)
-  menuitem(4, "retry", function()
-    -- for now, just reload cartridge
-    -- prefer passing basename for compatibility with .p8.png
-    load('where-is-my-belt_core')
-  end)
-
-  menuitem(5, "back to title", function()
-    -- for now, just reload cartridge
-    -- prefer passing basename for compatibility with .p8.png
-    load('where-is-my-belt_core')
-  end)
 end
 
 --#if itest
