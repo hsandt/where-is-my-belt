@@ -21,22 +21,23 @@ function ingame_state:init()
   self.phase = ingame_phase.before_play
   self.failure_reason = failure_reason.none
 
-  -- note that most state vars are setup in setup_challenge_state
-  --  and we don't set them before as they should not be used before entering
-  --  play state, and there is no better default value to pick than setup_challenge_state
-  --  already does
+  -- setup challenge state now, just to make sure we have valid members
+  --  during the before_play phase (and for unit tests that don't call it)
+  self:setup_challenge_state()
 end
 
 function ingame_state:on_enter()
-  menuitem(4, "retry", function()
-    self:start_challenge()
-  end)
-
   menuitem(5, "back to title", function()
     flow:query_gamestate_type(":main_menu")
   end)
 
+  -- if you move this to some delayed async method,
+  --  also move menuitem retry block so it makes sense
   self:start_challenge()
+
+  menuitem(4, "retry", function()
+    self:restart_challenge()
+  end)
 end
 
 function ingame_state:on_exit()
@@ -46,15 +47,23 @@ function ingame_state:on_exit()
 end
 
 function ingame_state:start_challenge()
+  -- the first time, setup_challenge_state has been called,
+  --  so no need to call it again
+
   self.phase = ingame_phase.play
   self.failure_reason = failure_reason.none
-
-  self:setup_challenge_state()
 
   -- prepare the first wave of obstacles
   for i=1,3 do
     self:set_rand_next_obstacle_spawn_time(i)
   end
+end
+
+function ingame_state:restart_challenge()
+  -- this time we restart, so we must reset challenge values
+  --  and then start the challenge (play phase)
+  self:setup_challenge_state()
+  self:start_challenge()
 end
 
 function ingame_state:setup_challenge_state()
@@ -65,7 +74,11 @@ function ingame_state:setup_challenge_state()
   self.teacher_arm_level = 1
 
   -- how much pants is falling, from 0 (initial) to 7 (defeat)
-  self.teacher_pants_falling_step = 0
+  -- it can be fractional to accomodate progressive fall
+  self.teacher_pants_falling_progress = 0
+
+  -- time left after game start or pull before pants start falling again
+  self.time_before_pants_fall = ingame_numerical_data.delay_before_pants_fall
 
   -- suspicion level of pupils (number), from 0 (initial) to 10 (defeat)
   -- each time teacher pulls their pants, pupils get more suspicious
@@ -96,17 +109,8 @@ function ingame_state:update()
   --  after success/failure
   if self.phase == ingame_phase.play then
 
-    -- countdown time before suspicion cooldown can be applied, if any
-    -- (done before actually checking cooldown, so as to advantage player by 1 frame)
-    if self.time_before_suspicion_cooldown > 0 then
-      self.time_before_suspicion_cooldown = self.time_before_suspicion_cooldown - 1
-    end
-
-    -- apply suspicion cooldown before possible pull_pants to avoid decreasing value right after a clamp,
-    --  making it impossible to reach max value at the end of update and so never lose by suspicion
-    if self.suspicion_level > 0 and self.time_before_suspicion_cooldown <= 0 then
-      self.suspicion_level = self.suspicion_level - ingame_numerical_data.suspicion_cooldown_per_second / 60
-    end
+    self:update_pants()
+    self:update_suspicion()
 
     if input:is_just_pressed(button_ids.o) then
       -- reset falling pants
@@ -141,8 +145,7 @@ function ingame_state:update()
             -- remove the obstacle so we're sure we won't hit it again next frame
             deli(obstacle_rel_positions, j)
 
-            -- on each collision, make pants fall a little more
-            self.teacher_pants_falling_step = min(self.teacher_pants_falling_step + 1, 7)
+            self:on_hit_obstacle()
           end
         end
       end
@@ -169,7 +172,7 @@ function ingame_state:update()
   elseif self.phase == ingame_phase.failure then
     -- press O to retry
     if input:is_just_pressed(button_ids.o) then
-      self:start_challenge()
+      self:restart_challenge()
     end
   end
 end
@@ -238,8 +241,9 @@ function ingame_state:render()
   local base_pants_position = teacher_position + visual.teacher_pants_attachment_offset
   visual.sprite_data_t.teacher_boxer_shorts:render(base_pants_position)
 
-  local pants_position = base_pants_position + vector(0, self.teacher_pants_falling_step)
-  visual.teacher_pants_by_falling_step[self.teacher_pants_falling_step]:render(pants_position)
+  local pants_falling_step = flr(self.teacher_pants_falling_progress)
+  local pants_position = base_pants_position + vector(0, pants_falling_step)
+  visual.teacher_pants_by_falling_step[pants_falling_step]:render(pants_position)
 
   -- pupils & desks
 
@@ -339,15 +343,58 @@ end
 
 -- game actions
 
+function ingame_state:on_hit_obstacle()
+  -- this increases suspicion of pupils
+  self:increase_suspicion()
+end
+
 function ingame_state:pull_pants()
   -- reset pants falling
-  self.teacher_pants_falling_step = 0
+  self.teacher_pants_falling_progress = 0
+  self.time_before_pants_fall = ingame_numerical_data.delay_before_pants_fall
 
-  -- increase suspicion of pupils
+  -- this increases suspicion of pupils
+  self:increase_suspicion()
+end
+
+function ingame_state:update_pants()
+
+  -- countdown time before pants can fall, if any
+  -- (done before actually checking pants fall)
+  if self.time_before_pants_fall > 0 then
+    self.time_before_pants_fall = self.time_before_pants_fall - 1
+  end
+
+  -- make pants fall gradually if it can
+  -- note that this is done before the possible pull pants action, so if player is pulling pants
+  --  this frame, it will be at progress 0 indeed at the end of the frame
+  if self.time_before_pants_fall <= 0 then
+    -- increment pants falling step (clamped)
+    local new_falling_progress = self.teacher_pants_falling_progress + ingame_numerical_data.pants_base_fall_speed / 60
+    self.teacher_pants_falling_progress = min(new_falling_progress, 7)
+  end
+end
+
+function ingame_state:update_suspicion()
+  -- countdown time before suspicion cooldown can be applied, if any
+  -- (done before actually checking cooldown, so as to advantage player by 1 frame)
+  if self.time_before_suspicion_cooldown > 0 then
+    self.time_before_suspicion_cooldown = self.time_before_suspicion_cooldown - 1
+  end
+
+  -- apply suspicion cooldown before possible pull_pants to avoid decreasing value right after a clamp,
+  --  making it impossible to reach max value at the end of update and so never lose by suspicion
+  if self.suspicion_level > 0 and self.time_before_suspicion_cooldown <= 0 then
+    local new_suspicion_level = self.suspicion_level - ingame_numerical_data.suspicion_cooldown_per_second / 60
+    self.suspicion_level = max(new_suspicion_level, 0)
+  end
+end
+
+function ingame_state:increase_suspicion()
+  -- increase suspicion of pupils (clamped)
   self.suspicion_level = min(self.suspicion_level + ingame_numerical_data.suspicion_increase_on_pull_pants, 10)
   self.time_before_suspicion_cooldown = ingame_numerical_data.delay_before_suspicion_cooldown
 end
-
 
 -- end of play
 
@@ -355,7 +402,7 @@ function ingame_state:check_failure()
   -- in the rare case where you fail for multiple reasons at once (on the same frame),
   --  this decides priority order
 
-  if self.teacher_pants_falling_step >= 7 then
+  if self.teacher_pants_falling_progress >= 7 then
     -- last falling step reached, player loses this challenge
     self.phase = ingame_phase.failure
     self.failure_reason = failure_reason.pants
