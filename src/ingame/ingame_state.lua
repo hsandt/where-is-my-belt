@@ -345,7 +345,7 @@ end
 
 function ingame_state:on_hit_obstacle()
   -- this increases suspicion of pupils
-  self:increase_suspicion()
+  self:increase_suspicion(ingame_numerical_data.suspicion_increase_on_hit_obstacle)
 end
 
 function ingame_state:pull_pants()
@@ -354,7 +354,7 @@ function ingame_state:pull_pants()
   self.time_before_pants_fall = ingame_numerical_data.delay_before_pants_fall
 
   -- this increases suspicion of pupils
-  self:increase_suspicion()
+  self:increase_suspicion(ingame_numerical_data.suspicion_increase_on_pull_pants)
 end
 
 function ingame_state:update_pants()
@@ -390,9 +390,9 @@ function ingame_state:update_suspicion()
   end
 end
 
-function ingame_state:increase_suspicion()
+function ingame_state:increase_suspicion(delta)
   -- increase suspicion of pupils (clamped)
-  self.suspicion_level = min(self.suspicion_level + ingame_numerical_data.suspicion_increase_on_pull_pants, 10)
+  self.suspicion_level = min(self.suspicion_level + delta, 10)
   self.time_before_suspicion_cooldown = ingame_numerical_data.delay_before_suspicion_cooldown
 end
 

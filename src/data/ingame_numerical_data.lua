@@ -21,6 +21,7 @@ local ingame_numerical_data = {
   pants_base_fall_speed = 1,  -- per second
   delay_before_pants_fall = 60,  -- in frames
   suspicion_increase_on_pull_pants = 3,
+  suspicion_increase_on_hit_obstacle = 2,
   suspicion_cooldown_per_second = 1,
   delay_before_suspicion_cooldown = 30,  -- in frames
 }
