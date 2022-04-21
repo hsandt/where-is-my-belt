@@ -52,6 +52,9 @@ function main_menu_state:render()
 
   local y = 40
   text_helper.print_centered("where is my belt?", 64, y, colors.white)
+  y = y + 10
+  -- $version replaced as long as build_single_cartridge.sh passes -v version="$version"
+  text_helper.print_centered("V$version", 64, y, colors.white)
   y = y + 20
   text_helper.print_centered("by komehara", 64, y, colors.white)
   y = y + 10
