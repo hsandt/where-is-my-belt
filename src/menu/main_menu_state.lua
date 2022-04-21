@@ -50,12 +50,16 @@ end
 function main_menu_state:render()
   cls()
 
-  local title_y = 48
-  text_helper.print_centered("where is my belt?", 64, title_y, colors.white)
+  local y = 40
+  text_helper.print_centered("where is my belt?", 64, y, colors.white)
+  y = y + 20
+  text_helper.print_centered("by komehara", 64, y, colors.white)
+  y = y + 10
+  text_helper.print_centered("komehara.itch.io", 64, y, colors.white)
+  y = y + 4 * character_height
 
   if self.menu then
-    -- skip 4 lines and draw menu content
-    self.menu:draw(54, title_y + 4 * character_height)
+    self.menu:draw(54, y)
   end
 end
 
