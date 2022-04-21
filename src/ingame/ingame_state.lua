@@ -263,8 +263,8 @@ function ingame_state:render()
     if self.failure_reason == failure_reason.pants then
       text_helper.print_aligned("you lost the pants!", screen_width / 2, 91, alignments.center, colors.white, colors.black)
     elseif self.failure_reason == failure_reason.suspicion then
-      text_helper.print_aligned("your pupils saw you", screen_width / 2, 91, alignments.center, colors.white, colors.black)
-      text_helper.print_aligned("pull your pants too often!", screen_width / 2, 99, alignments.center, colors.white, colors.black)
+      text_helper.print_aligned("your pupils reached ", screen_width / 2, 91, alignments.center, colors.white, colors.black)
+      text_helper.print_aligned("max suspicion!", screen_width / 2, 99, alignments.center, colors.white, colors.black)
     end
     -- until either p8tool listrawlua is fixed, or I support post-build replace glyph '##o',
     --  I'll have to print standard characters, avoiding input glyphs
