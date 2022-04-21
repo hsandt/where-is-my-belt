@@ -6,7 +6,7 @@ TODO: insert game capture GIF here
 
 **Where is my Belt?** is a twitch game made for [Ludum Dare 50](https://ldjam.com/events/ludum-dare/50/) on the theme "Delay the inevitable" in the Extra category.
 
-In this game, you play as a teacher who forgot their belt and must run a class while keeping their pants up. But you are only delaying the inevitable...
+In this game, you play as a teacher who forgot their belt and must run a class while keeping their pants up. But beware: the pupils are looking at you...
 
 ## Screenshots
 
