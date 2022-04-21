@@ -51,7 +51,7 @@ function main_menu_state:render()
   cls()
 
   local title_y = 48
-  text_helper.print_centered("main menu", 64, title_y, colors.white)
+  text_helper.print_centered("where is my belt?", 64, title_y, colors.white)
 
   if self.menu then
     -- skip 4 lines and draw menu content
