@@ -16,6 +16,7 @@ author=`cat "$data_path/author_pico8.txt"`
 title_pico8=`cat "$data_path/title_pico8.txt"`
 cartridge_stem=`cat "$data_path/title_cartridge.txt"`
 version=`cat "$data_path/version.txt"`
+use_cartridge_full_suffix_in_title=false  # for a 1-cartridge game, we recommend false
 
 # Configuration: numerical data modules
 # Define list of data module paths, separated by space (Python argparse nargs='*')
@@ -172,6 +173,12 @@ fi
 
 cartridge_full_suffix="${cartridge_extra_suffix}${cartridge_suffix}"
 
+if [[ "$use_cartridge_full_suffix_in_title" == true ]]; then
+  full_title="$title_pico8 v$version (${cartridge_full_suffix})"
+else
+  full_title="$title_pico8 v$version"
+fi
+
 # Build cartridge
 # See data/cartridges.txt for the list of cartridge names
 # metadata really counts for the entry cartridge (titlemenu)
@@ -185,7 +192,7 @@ cartridge_full_suffix="${cartridge_extra_suffix}${cartridge_suffix}"
   ${required_relative_dirpath}                                        \
   -d "${data_path}/${data_filebasename}.p8"                           \
   -M "$data_path/metadata.p8"                                         \
-  -a "$author" -t "$title_pico8 v$version (${cartridge_full_suffix})" \
+  -a "$author" -t "$full_title" \
   -p "$build_output_path"                                             \
   -o "${cartridge_stem}_${cartridge_full_suffix}"                     \
   -c "$config"                                                        \
