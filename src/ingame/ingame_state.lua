@@ -77,6 +77,9 @@ function ingame_state:setup_challenge_state()
   -- it can be fractional to accomodate progressive fall
   self.teacher_pants_falling_progress = 0
 
+  -- current pants falling speed, increases slowly over time
+  self.teacher_pants_falling_speed = ingame_numerical_data.pants_base_fall_speed
+
   -- time left after game start or pull before pants start falling again
   self.time_before_pants_fall = ingame_numerical_data.delay_before_pants_fall
 
@@ -369,8 +372,13 @@ function ingame_state:update_pants()
   -- note that this is done before the possible pull pants action, so if player is pulling pants
   --  this frame, it will be at progress 0 indeed at the end of the frame
   if self.time_before_pants_fall <= 0 then
+    -- note that we only apply acceleration only when pants can fall, up to a limit
+    --  however, we keep last speed even after a pull
+    self.teacher_pants_falling_speed = min(self.teacher_pants_falling_speed + ingame_numerical_data.pants_fall_accel / 60,
+        ingame_numerical_data.pants_max_fall_speed)
+
     -- increment pants falling step (clamped)
-    local new_falling_progress = self.teacher_pants_falling_progress + ingame_numerical_data.pants_base_fall_speed / 60
+    local new_falling_progress = self.teacher_pants_falling_progress + self.teacher_pants_falling_speed / 60
     self.teacher_pants_falling_progress = min(new_falling_progress, 7)
   end
 end
