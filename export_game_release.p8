@@ -9,14 +9,17 @@ __lua__
 -- Note that it will not warn if cartridge is not found.
 -- Paths are relative to PICO-8 carts directory.
 
+-- #title
+local title = "where-is-my-belt"
 -- #version
 -- PICO-8 cannot read data/version.txt, so exceptionally set the version manually here
-local title = "where-is-my-belt"
 local version = "0.1"
+-- #cartridge
+local entry_cartridge_name = "core"
+local template_file = "where-is-my-belt_template"  -- no .html extension
 local export_folder = title.."/v"..version.."_release"
 local game_basename = title.."_v"..version.."_release"
 local rel_png_folder = game_basename.."_png_cartridges"
-local template_file = "where-is-my-belt_template"  -- no .html extension
 
 -- #cartridge (tagged to easily find what code to change when adding a new cartridge,
 -- and because this script cannot access external files like cartridges.txt)
@@ -43,7 +46,7 @@ local icon_transparent_color = 14
 
 cd(export_folder)
 
-  local entry_cartridge = title.."_core.p8"
+  local entry_cartridge = title.."_"..entry_cartridge_name..".p8"
 
   -- all main cartridges, including entry cartridge
   local main_cartridges_list = {entry_cartridge}
